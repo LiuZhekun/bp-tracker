@@ -13,7 +13,7 @@ const $ = id => document.getElementById(id);
 
 // ===== 初始化 =====
 document.addEventListener('DOMContentLoaded', () => {
-  setDefaultTime();
+  // 不预填时间，保持折叠状态，保存时自动取当前时刻
   bindNav();
   bindAdd();
   bindHistory();
@@ -43,6 +43,28 @@ function nowLocalISO() {
 // 设置当前时间为默认值
 function setDefaultTime() {
   $('input-time').value = nowLocalISO();
+}
+
+// 展开时间输入面板
+function toggleTimeInput() {
+  const wrap = $('time-input-wrap');
+  const row  = $('time-toggle-row');
+  const isHidden = wrap.classList.contains('hidden');
+  if (isHidden) {
+    wrap.classList.remove('hidden');
+    // 展开时预填当前时间，方便用户微调
+    if (!$('input-time').value) setDefaultTime();
+    row.querySelector('.form-time-hint').textContent = '不填则自动记录当前时间 ▾';
+  } else {
+    collapseTimeInput();
+  }
+}
+
+// 收起时间面板
+function collapseTimeInput() {
+  $('time-input-wrap').classList.add('hidden');
+  const hint = document.querySelector('#time-toggle-row .form-time-hint');
+  if (hint) hint.textContent = '不填则自动记录当前时间 ▸';
 }
 
 // ===== 导航 =====
@@ -76,13 +98,22 @@ function bindAdd() {
   $('voice-btn').addEventListener('click', startVoice);
   $('voice-stop-btn').addEventListener('click', stopVoice);
 
-  // 图表时间范围
+  // 图表时间范围（含自定义）
   document.querySelectorAll('.seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentRange = btn.dataset.range;
-      renderChart();
+      // 选中"自定义"时展开日期面板，其他时收起
+      $('custom-range-panel').classList.toggle('hidden', currentRange !== 'custom');
+      if (currentRange !== 'custom') renderChart();
+    });
+  });
+
+  // 自定义日期变更时刷新图表
+  ['chart-date-start', 'chart-date-end'].forEach(id => {
+    $(id).addEventListener('change', () => {
+      if (currentRange === 'custom') renderChart();
     });
   });
 
@@ -233,12 +264,23 @@ function onSave() {
 
   $('input-sys').value = $('input-dia').value = $('input-pulse').value = $('input-note').value = '';
   timeUserEdited = false; // 重置标志，下次保存再用当前时刻
-  setDefaultTime();
+  // 保存后清空时间输入框并收起时间面板
+  $('input-time').value = '';
+  collapseTimeInput();
 }
 
 // ===== 图表 =====
 function renderChart() {
-  Charts.render(Storage.getByRange(currentRange), currentRange);
+  let data;
+  if (currentRange === 'custom') {
+    // 自定义模式：用起止日期筛选
+    const s = $('chart-date-start').value;
+    const e = $('chart-date-end').value;
+    data = Storage.getByDateRange(s, e);
+  } else {
+    data = Storage.getByRange(currentRange);
+  }
+  Charts.render(data, currentRange);
 }
 
 // ===== 历史记录 =====
@@ -250,6 +292,18 @@ function bindHistory() {
   // 导入：点击按钮触发隐藏的 file input
   $('import-btn').addEventListener('click', () => $('import-input').click());
   $('import-input').addEventListener('change', onImportCSV);
+
+  // 历史页日期筛选：输入后即时刷新
+  ['hist-date-start', 'hist-date-end'].forEach(id => {
+    $(id).addEventListener('change', renderHistory);
+  });
+
+  // 清除筛选按钮
+  $('hist-filter-clear').addEventListener('click', () => {
+    $('hist-date-start').value = '';
+    $('hist-date-end').value   = '';
+    renderHistory();
+  });
 }
 
 // ===== CSV 导入 =====
@@ -310,9 +364,15 @@ function splitCSVLine(line) {
 }
 
 function renderHistory() {
-  const records = Storage.getAll();
-  const list    = $('record-list');
-  const empty   = $('no-data-history');
+  const s = $('hist-date-start').value;
+  const e = $('hist-date-end').value;
+  // 有日期筛选时用自定义范围，否则取全部
+  const records = (s || e) ? Storage.getByDateRange(s, e) : Storage.getAll();
+  // 有筛选条件时显示清除按钮
+  $('hist-filter-clear').classList.toggle('hidden', !s && !e);
+
+  const list  = $('record-list');
+  const empty = $('no-data-history');
 
   if (!records.length) {
     list.innerHTML = '';

@@ -155,5 +155,20 @@ const Storage = (() => {
     return true;
   }
 
-  return { getAll, save, remove, getByRange, calcStats, calcDistribution, exportCSV, importRecords };
+  /**
+   * 按自定义起止日期筛选（start/end 为 'YYYY-MM-DD' 字符串，可为空）
+   */
+  function getByDateRange(start, end) {
+    const all = getAll();
+    const s = start ? new Date(start) : null;
+    const e = end   ? new Date(end + 'T23:59:59') : null; // 包含结束当天全天
+    return all.filter(r => {
+      const t = new Date(r.time);
+      if (s && t < s) return false;
+      if (e && t > e) return false;
+      return true;
+    });
+  }
+
+  return { getAll, save, remove, getByRange, getByDateRange, calcStats, calcDistribution, exportCSV, importRecords };
 })();

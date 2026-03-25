@@ -226,6 +226,25 @@ body {
   font-family: inherit; font-size: 17px; color: var(--label);
   text-align: right; min-width: 0;
 }
+
+/* 时间折叠行：提示文字样式 */
+.time-toggle-row {
+  cursor: pointer;
+  user-select: none;
+}
+.form-time-hint {
+  flex: 1;
+  text-align: right;
+  font-size: 13px;
+  color: var(--label3);
+}
+
+/* 折叠内容区：hidden 时隐藏 */
+.time-input-wrap {
+  background: var(--bg2, #f2f2f7);
+  padding: 0 16px;
+}
+.time-input-wrap.hidden { display: none; }
 input::placeholder { color: var(--label3); }
 
 /* 保存按钮 */
@@ -263,6 +282,74 @@ input::placeholder { color: var(--label3); }
   background: var(--surface);
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 1px rgba(0,0,0,.06);
+}
+/* 自定义按钮字号略小，不太显眼 */
+.seg-btn-custom { font-size: 12px; color: var(--label2); }
+.seg-btn-custom.active { color: var(--label); }
+
+/* 自定义日期范围面板 */
+.custom-range-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px 2px;
+}
+.custom-range-panel .date-input {
+  flex: 1;
+  border: none;
+  border-bottom: 1px solid var(--sep);
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--label);
+  padding: 4px 2px;
+  outline: none;
+  min-width: 0;
+}
+.date-sep {
+  font-size: 13px;
+  color: var(--label3);
+  flex-shrink: 0;
+}
+
+/* 历史记录筛选行 */
+.history-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 8px;
+  border-bottom: .5px solid var(--sep);
+  margin-bottom: 4px;
+}
+.filter-label {
+  font-size: 13px;
+  color: var(--label3);
+  flex-shrink: 0;
+}
+.history-filter .date-input {
+  flex: 1;
+  border: none;
+  border-bottom: 1px solid var(--sep);
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--label);
+  padding: 3px 2px;
+  outline: none;
+  min-width: 0;
+}
+/* 清除筛选按钮 */
+.filter-clear {
+  border: none;
+  background: rgba(118,118,128,.15);
+  color: var(--label2);
+  font-size: 12px;
+  border-radius: 50%;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
 }
 
 /* =========================================

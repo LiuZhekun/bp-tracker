@@ -75,9 +75,16 @@
         </div>
         <div class="row-sep"></div>
 
-        <div class="form-row">
+        <!-- 时间行：默认折叠，展开后才显示 datetime-local 输入框 -->
+        <div class="form-row time-toggle-row" id="time-toggle-row" onclick="toggleTimeInput()">
           <span class="form-label">时间</span>
-          <input type="datetime-local" id="input-time" class="form-input-right">
+          <span class="form-time-hint">不填则自动记录当前时间 ▸</span>
+        </div>
+        <div id="time-input-wrap" class="time-input-wrap hidden">
+          <div class="form-row">
+            <span class="form-label">选择时间</span>
+            <input type="datetime-local" id="input-time" class="form-input-right">
+          </div>
         </div>
         <div class="row-sep"></div>
 
@@ -107,6 +114,13 @@
         <button class="seg-btn" data-range="month30">近30天</button>
         <button class="seg-btn" data-range="month90">近3月</button>
         <button class="seg-btn" data-range="all">全部</button>
+        <button class="seg-btn seg-btn-custom" data-range="custom">自定义</button>
+      </div>
+      <!-- 自定义日期范围面板，默认折叠 -->
+      <div id="custom-range-panel" class="custom-range-panel hidden">
+        <input type="date" id="chart-date-start" class="date-input">
+        <span class="date-sep">—</span>
+        <input type="date" id="chart-date-end" class="date-input">
       </div>
 
       <!-- 无数据提示 -->
@@ -168,6 +182,14 @@
       </div>
     </header>
     <main class="page-main">
+      <!-- 历史记录日期筛选行 -->
+      <div class="history-filter">
+        <span class="filter-label">时间</span>
+        <input type="date" id="hist-date-start" class="date-input">
+        <span class="date-sep">—</span>
+        <input type="date" id="hist-date-end" class="date-input">
+        <button id="hist-filter-clear" class="filter-clear hidden">✕</button>
+      </div>
       <div id="record-list"></div>
       <div id="no-data-history" class="empty-state hidden">
         <p>📋</p>
