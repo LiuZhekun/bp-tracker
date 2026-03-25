@@ -3,10 +3,11 @@
  * 语音输入 / 手动填写 / 保存 / 图表 / 历史
  */
 
-let currentView  = 'add';
-let currentRange = 'week7';
-let pendingDeleteId = null;
-let recognition  = null;
+let currentView      = 'add';
+let currentRange     = 'week7';
+let pendingDeleteId  = null;
+let recognition      = null;
+let timeUserEdited   = false; // 用户是否手动修改了时间字段
 
 const $ = id => document.getElementById(id);
 
@@ -87,6 +88,9 @@ function bindAdd() {
 
   // 保存
   $('save-btn').addEventListener('click', onSave);
+
+  // 监听时间字段：用户手动修改时置标志位
+  $('input-time').addEventListener('change', () => { timeUserEdited = true; });
 
   // 删除确认
   $('confirm-ok').addEventListener('click', () => {
@@ -218,9 +222,8 @@ function onSave() {
   const pulse = $('input-pulse').value ? +$('input-pulse').value : null;
   const note  = $('input-note').value.trim();
 
-  // 时间：用户手动改了就用用户填的，否则用当前时间（录入时刻）
-  const timeInput = $('input-time').value;
-  const time = timeInput || nowLocalISO();
+  // 时间：用户手动改过就用输入框的值，否则用点击保存时的当前时刻
+  const time = timeUserEdited ? $('input-time').value : nowLocalISO();
 
   if (!sys || !dia)  { toast('⚠️ 请填写收缩压和舒张压'); return; }
   if (sys <= dia)    { toast('⚠️ 收缩压应大于舒张压');   return; }
@@ -229,7 +232,8 @@ function onSave() {
   toast('✅ 已保存');
 
   $('input-sys').value = $('input-dia').value = $('input-pulse').value = $('input-note').value = '';
-  setDefaultTime(); // 重置为当前时间，方便下次录入
+  timeUserEdited = false; // 重置标志，下次保存再用当前时刻
+  setDefaultTime();
 }
 
 // ===== 图表 =====
