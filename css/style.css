@@ -272,8 +272,8 @@ input[type="text"]:focus {
   border: none;
   background: transparent;
   border-radius: 8px;
-  padding: 8px;
-  font-size: 14px;
+  padding: 8px 4px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
   cursor: pointer;

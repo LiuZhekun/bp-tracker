@@ -5,8 +5,8 @@
 
 // ===== 当前激活视图 =====
 let currentView = 'add';
-// 当前图表时间范围（天数，0=全部）
-let currentRange = 7;
+// 当前图表时间范围
+let currentRange = 'day';
 // 待删除的记录 id
 let pendingDeleteId = null;
 
@@ -75,7 +75,7 @@ function bindEvents() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      currentRange = parseInt(btn.dataset.range);
+      currentRange = btn.dataset.range; // 'day' | 'month30' | 'month' | 'year'
       renderChart();
     });
   });
@@ -188,8 +188,8 @@ function onSave() {
 
 // ===== 渲染图表视图 =====
 function renderChart() {
-  const records = Storage.getByDays(currentRange);
-  Charts.render(records);
+  const records = Storage.getByRange(currentRange);
+  Charts.render(records, currentRange);
 }
 
 // ===== 渲染历史记录列表 =====

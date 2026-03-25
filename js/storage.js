@@ -39,14 +39,42 @@ const Storage = (() => {
     localStorage.setItem(KEY, JSON.stringify(records));
   }
 
-  // 获取近 N 天的记录（days=0 表示全部）
-  function getByDays(days) {
+  /**
+   * 按时间维度筛选记录
+   * @param {'day'|'month30'|'month'|'year'} range
+   */
+  function getByRange(range) {
     const all = getAll();
-    if (!days || days === 0) return all;
+    const now = new Date();
 
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    return all.filter(r => new Date(r.time) >= cutoff);
+    if (range === 'day') {
+      // 今天：同年同月同日
+      return all.filter(r => {
+        const d = new Date(r.time);
+        return d.getFullYear() === now.getFullYear() &&
+               d.getMonth()    === now.getMonth()    &&
+               d.getDate()     === now.getDate();
+      });
+    }
+    if (range === 'month30') {
+      // 近30天
+      const cutoff = new Date(now);
+      cutoff.setDate(cutoff.getDate() - 30);
+      return all.filter(r => new Date(r.time) >= cutoff);
+    }
+    if (range === 'month') {
+      // 本月
+      return all.filter(r => {
+        const d = new Date(r.time);
+        return d.getFullYear() === now.getFullYear() &&
+               d.getMonth()    === now.getMonth();
+      });
+    }
+    if (range === 'year') {
+      // 今年
+      return all.filter(r => new Date(r.time).getFullYear() === now.getFullYear());
+    }
+    return all;
   }
 
   // 导出为 CSV 文件并触发下载
@@ -78,5 +106,5 @@ const Storage = (() => {
     return true;
   }
 
-  return { getAll, save, remove, getByDays, exportCSV };
+  return { getAll, save, remove, getByRange, exportCSV };
 })();
