@@ -161,7 +161,11 @@
   <div id="view-history" class="view">
     <header class="page-header">
       <h1>历史记录</h1>
-      <button id="export-btn" class="header-action">导出</button>
+      <div class="header-actions">
+        <input type="file" id="import-input" accept=".csv" style="display:none">
+        <button id="import-btn" class="header-action">导入</button>
+        <button id="export-btn" class="header-action">导出</button>
+      </div>
     </header>
     <main class="page-main">
       <div id="record-list"></div>

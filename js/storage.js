@@ -95,6 +95,51 @@ const Storage = (() => {
     return dist;
   }
 
+  /**
+   * 导入记录：相同时间的覆盖，新时间的追加
+   * @param {Array} incoming - 解析后的记录数组
+   * @returns {{ added: number, updated: number }}
+   */
+  function importRecords(incoming) {
+    const existing = getAll();
+
+    // 以 time 字段为唯一键建立索引
+    const byTime = {};
+    existing.forEach(r => { byTime[r.time] = r; });
+
+    let added = 0, updated = 0;
+
+    incoming.forEach(r => {
+      if (!r.time || !r.sys || !r.dia) return; // 跳过无效行
+      if (byTime[r.time]) {
+        // 相同时间 → 覆盖字段
+        Object.assign(byTime[r.time], {
+          sys:   Number(r.sys),
+          dia:   Number(r.dia),
+          pulse: r.pulse ? Number(r.pulse) : null,
+          note:  r.note || '',
+        });
+        updated++;
+      } else {
+        // 新记录 → 生成 id 后追加
+        byTime[r.time] = {
+          id:    String(Date.now()) + Math.random().toString(36).slice(2),
+          time:  r.time,
+          sys:   Number(r.sys),
+          dia:   Number(r.dia),
+          pulse: r.pulse ? Number(r.pulse) : null,
+          note:  r.note || '',
+        };
+        added++;
+      }
+    });
+
+    // 按时间倒序保存
+    const sorted = Object.values(byTime).sort((a, b) => new Date(b.time) - new Date(a.time));
+    localStorage.setItem(KEY, JSON.stringify(sorted));
+    return { added, updated };
+  }
+
   function exportCSV() {
     const records = getAll();
     if (!records.length) return false;
@@ -110,5 +155,5 @@ const Storage = (() => {
     return true;
   }
 
-  return { getAll, save, remove, getByRange, calcStats, calcDistribution, exportCSV };
+  return { getAll, save, remove, getByRange, calcStats, calcDistribution, exportCSV, importRecords };
 })();
