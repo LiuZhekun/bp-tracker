@@ -123,7 +123,7 @@ async function onPhotoSelected(e) {
   previewImg.src = url;
   photoPreview.classList.remove('hidden');
   ocrStatus.className = 'ocr-status';
-  ocrStatus.textContent = '⏳ 正在识别数据...';
+  ocrStatus.textContent = '⏳ 正在识别数据（多策略重试）...';
 
   // 图片加载后执行 OCR
   previewImg.onload = async () => {
