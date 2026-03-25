@@ -3,15 +3,6 @@
  * 负责：视图切换、拍照OCR、表单保存、历史记录渲染、导出
  */
 
-// ===== 注册 Service Worker（离线支持）=====
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('[App] Service Worker 注册成功'))
-      .catch(e => console.warn('[App] Service Worker 注册失败:', e));
-  });
-}
-
 // ===== 当前激活视图 =====
 let currentView = 'add';
 // 当前图表时间范围（天数，0=全部）
@@ -52,7 +43,8 @@ function setDefaultTime() {
 // ===== 注册 Service Worker =====
 function registerSW() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    // 使用相对路径，兼容 GitHub Pages 子路径部署
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 }
 

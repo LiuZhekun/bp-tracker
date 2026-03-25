@@ -1,35 +1,53 @@
-/* Service Worker - 离线缓存策略 */
+/* Service Worker - 离线缓存策略
+ * 首次访问时缓存所有资源，之后完全离线运行
+ */
 
 // 缓存版本号，修改代码后递增此值可强制更新缓存
 const CACHE_VERSION = 'v1.0.0';
 const CACHE_NAME = `bp-tracker-${CACHE_VERSION}`;
 
-// 需要预缓存的本地资源（应用外壳）
+// 预缓存的本地资源（首次 install 时一次性下载并缓存）
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/css/style.css',
-  '/js/storage.js',
-  '/js/ocr.js',
-  '/js/charts.js',
-  '/js/app.js',
-  '/icons/icon.svg',
+  './',
+  './index.html',
+  './manifest.json',
+  './css/style.css',
+  './js/storage.js',
+  './js/ocr.js',
+  './js/charts.js',
+  './js/app.js',
+  './icons/icon.svg',
 ];
 
-// CDN 资源域名（运行时缓存）
+// 预缓存的 CDN 资源（首次 install 时也一并下载，确保离线可用）
+const PRECACHE_CDN = [
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js',
+];
+
+// 需要运行时缓存的 CDN 域名（Tesseract WASM/语言包在首次 OCR 时加载）
 const CDN_ORIGINS = [
   'cdn.jsdelivr.net',
   'tessdata.projectnaptha.com',
 ];
 
-// ===== install：预缓存本地资源 =====
+// ===== install：预缓存所有本地 + CDN 资源 =====
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(CACHE_NAME).then(async (cache) => {
       console.log('[SW] 预缓存本地资源');
-      return cache.addAll(PRECACHE_ASSETS);
-    }).then(() => self.skipWaiting()) // 立即激活新 SW
+      await cache.addAll(PRECACHE_ASSETS);
+
+      // CDN 资源逐个缓存，单个失败不影响其他
+      console.log('[SW] 预缓存 CDN 资源');
+      for (const url of PRECACHE_CDN) {
+        try {
+          await cache.add(url);
+        } catch (e) {
+          console.warn('[SW] CDN 缓存失败（离线时将重试）:', url);
+        }
+      }
+    }).then(() => self.skipWaiting()) // 立即激活，不等旧 SW 退出
   );
 });
 
@@ -49,30 +67,34 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ===== fetch：拦截网络请求 =====
+// ===== fetch：缓存优先策略（确保离线可用）=====
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // CDN 资源：网络优先，失败时回退缓存（确保 Tesseract/Chart.js 离线可用）
+  // 只处理 GET 请求
+  if (event.request.method !== 'GET') return;
+
+  // CDN 资源：缓存优先，没缓存时走网络并存入缓存
   if (CDN_ORIGINS.includes(url.hostname)) {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // 成功则存入缓存
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached; // 有缓存直接用，不请求网络
+        return fetch(event.request).then((response) => {
+          // 请求成功则存入缓存，下次离线可用
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
           return response;
-        })
-        .catch(() => caches.match(event.request))
+        });
+      })
     );
     return;
   }
 
-  // 本地资源：缓存优先，确保离线可用
+  // 本地资源：缓存优先
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        // 顺便存入缓存
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         return response;

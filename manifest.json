@@ -2,7 +2,7 @@
   "name": "血压记录",
   "short_name": "血压",
   "description": "记录每次血压数据，支持拍照识别，生成趋势图表",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#E53E3E",
