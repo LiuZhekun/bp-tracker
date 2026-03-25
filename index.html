@@ -19,23 +19,42 @@
   <!-- ===== 视图1：录入血压 ===== -->
   <div id="view-add" class="view active">
     <header class="page-header">
-      <h1>记录血压V1</h1>
+      <h1>记录血压V2</h1>
     </header>
     <main class="page-main">
 
-      <!-- 拍照区域 -->
-      <div class="photo-section card">
-        <!-- 隐藏的 file input，capture="environment" 调用后置摄像头 -->
+      <!-- 输入方式选择 -->
+      <div class="input-methods card">
         <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
-        <button id="take-photo-btn" class="btn btn-primary btn-large">
-          <span class="btn-icon">📷</span>
-          拍照识别血压仪
-        </button>
+
+        <!-- 两个并排按钮 -->
+        <div class="method-btns">
+          <button id="take-photo-btn" class="btn btn-method">
+            <span class="method-icon">📷</span>
+            <span>拍照识别</span>
+          </button>
+          <button id="voice-btn" class="btn btn-method btn-method-voice">
+            <span class="method-icon">🎤</span>
+            <span>语音输入</span>
+          </button>
+        </div>
+
+        <!-- 拍照预览 -->
         <div id="photo-preview" class="photo-preview hidden">
           <img id="preview-img" alt="血压仪照片预览">
           <div id="ocr-status" class="ocr-status">
-            <span class="ocr-spinner">⏳</span> 正在识别数据...
+            <span class="ocr-spinner">⏳</span> 正在识别数据（多策略重试）...
           </div>
+        </div>
+
+        <!-- 语音录入状态 -->
+        <div id="voice-panel" class="voice-panel hidden">
+          <div id="voice-wave" class="voice-wave">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <p id="voice-hint" class="voice-hint">请说：高压130 低压85 心率72</p>
+          <p id="voice-result" class="voice-result"></p>
+          <button id="voice-stop-btn" class="btn btn-text">停止</button>
         </div>
       </div>
 
