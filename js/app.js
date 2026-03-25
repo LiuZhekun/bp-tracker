@@ -246,6 +246,67 @@ function bindHistory() {
   $('export-btn').addEventListener('click', () => {
     toast(Storage.exportCSV() ? '✅ 已导出 CSV' : '⚠️ 暂无数据');
   });
+
+  // 导入：点击按钮触发隐藏的 file input
+  $('import-btn').addEventListener('click', () => $('import-input').click());
+  $('import-input').addEventListener('change', onImportCSV);
+}
+
+// ===== CSV 导入 =====
+async function onImportCSV(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const records = parseCSV(text);
+    if (!records.length) { toast('⚠️ 未找到有效数据'); return; }
+    const { added, updated } = Storage.importRecords(records);
+    toast(`✅ 新增 ${added} 条，更新 ${updated} 条`);
+    renderHistory();
+  } catch (_) {
+    toast('⚠️ 文件读取失败');
+  } finally {
+    e.target.value = ''; // 重置，允许重复导入同一文件
+  }
+}
+
+// 解析 CSV 文本，返回记录数组（跳过首行表头）
+function parseCSV(text) {
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+                    .split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+
+  return lines.slice(1).map(line => {
+    const fields = splitCSVLine(line);
+    return {
+      time:  fields[0] || '',
+      sys:   fields[1] || '',
+      dia:   fields[2] || '',
+      pulse: fields[3] || '',
+      note:  fields[4] || '',
+    };
+  }).filter(r => r.time && r.sys && r.dia);
+}
+
+// 处理 CSV 单行，支持带引号的字段（含逗号/换行）
+function splitCSVLine(line) {
+  const fields = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQ) {
+      if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else cur += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { fields.push(cur.trim()); cur = ''; }
+      else cur += c;
+    }
+  }
+  fields.push(cur.trim());
+  return fields;
 }
 
 function renderHistory() {
