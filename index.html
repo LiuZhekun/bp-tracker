@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <!-- 适配 iPhone 刘海/安全区 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- PWA 全屏模式配置 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="血压记录">
+  <!-- 主屏幕图标 -->
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+  <title>血压记录</title>
+</head>
+<body>
+
+  <!-- ===== 视图1：录入血压 ===== -->
+  <div id="view-add" class="view active">
+    <header class="page-header">
+      <h1>记录血压</h1>
+    </header>
+    <main class="page-main">
+
+      <!-- 拍照区域 -->
+      <div class="photo-section card">
+        <!-- 隐藏的 file input，capture="environment" 调用后置摄像头 -->
+        <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
+        <button id="take-photo-btn" class="btn btn-primary btn-large">
+          <span class="btn-icon">📷</span>
+          拍照识别血压仪
+        </button>
+        <div id="photo-preview" class="photo-preview hidden">
+          <img id="preview-img" alt="血压仪照片预览">
+          <div id="ocr-status" class="ocr-status">
+            <span class="ocr-spinner">⏳</span> 正在识别数据...
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据录入表单 -->
+      <div class="form-section card">
+        <p class="form-tip">识别后可手动修正，或直接填写数值</p>
+
+        <div class="form-row">
+          <label for="input-sys">收缩压（高压）</label>
+          <div class="input-with-unit">
+            <input type="number" id="input-sys" min="60" max="260" placeholder="120" inputmode="numeric">
+            <span class="unit">mmHg</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-dia">舒张压（低压）</label>
+          <div class="input-with-unit">
+            <input type="number" id="input-dia" min="40" max="150" placeholder="80" inputmode="numeric">
+            <span class="unit">mmHg</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-pulse">心率</label>
+          <div class="input-with-unit">
+            <input type="number" id="input-pulse" min="30" max="220" placeholder="72" inputmode="numeric">
+            <span class="unit">次/分</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-time">测量时间</label>
+          <input type="datetime-local" id="input-time">
+        </div>
+
+        <div class="form-row">
+          <label for="input-note">备注（可选）</label>
+          <input type="text" id="input-note" placeholder="如：早饭前、服药后…" maxlength="50">
+        </div>
+
+        <button id="save-btn" class="btn btn-primary btn-save">💾 保存记录</button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===== 视图2：趋势图表 ===== -->
+  <div id="view-chart" class="view">
+    <header class="page-header">
+      <h1>趋势图表</h1>
+    </header>
+    <main class="page-main">
+
+      <!-- 时间范围切换 -->
+      <div class="range-selector">
+        <button class="range-btn active" data-range="7">近7天</button>
+        <button class="range-btn" data-range="30">近30天</button>
+        <button class="range-btn" data-range="0">全部</button>
+      </div>
+
+      <!-- 图表区域 -->
+      <div class="card chart-card">
+        <div class="chart-container">
+          <canvas id="bp-chart"></canvas>
+        </div>
+        <!-- 自定义图例 -->
+        <div class="chart-legend">
+          <span class="legend-sys">■ 收缩压</span>
+          <span class="legend-dia">■ 舒张压</span>
+          <span class="legend-pulse">■ 心率</span>
+        </div>
+        <p class="chart-ref-tip">虚线参考：正常值 &lt;120/80</p>
+      </div>
+
+      <div id="no-data-chart" class="no-data hidden">
+        暂无记录，请先录入血压数据 📊
+      </div>
+
+      <!-- 最新一条统计 -->
+      <div id="latest-stats" class="card stats-card hidden">
+        <h3>最近一次</h3>
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-value sys" id="stat-sys">--</span>
+            <span class="stat-label">收缩压</span>
+          </div>
+          <div class="stat-divider">/</div>
+          <div class="stat-item">
+            <span class="stat-value dia" id="stat-dia">--</span>
+            <span class="stat-label">舒张压</span>
+          </div>
+          <div class="stat-item pulse-stat">
+            <span class="stat-value pulse" id="stat-pulse">--</span>
+            <span class="stat-label">心率</span>
+          </div>
+        </div>
+        <p id="stat-time" class="stat-time"></p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===== 视图3：历史记录 ===== -->
+  <div id="view-history" class="view">
+    <header class="page-header">
+      <h1>历史记录</h1>
+      <button id="export-btn" class="btn btn-text">导出CSV</button>
+    </header>
+    <main class="page-main">
+
+      <div id="record-list" class="record-list"></div>
+
+      <div id="no-data-history" class="no-data hidden">
+        暂无记录，请先录入血压数据 📋
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===== 底部导航栏 ===== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="add">
+      <span class="nav-icon">➕</span>
+      <span class="nav-label">录入</span>
+    </button>
+    <button class="nav-btn" data-view="chart">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">图表</span>
+    </button>
+    <button class="nav-btn" data-view="history">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">历史</span>
+    </button>
+  </nav>
+
+  <!-- ===== Toast 提示 ===== -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- ===== 删除确认弹窗 ===== -->
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <p>确认删除这条记录？</p>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="btn btn-text">取消</button>
+        <button id="confirm-ok" class="btn btn-danger">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 依赖库（首次在线加载，之后由 Service Worker 缓存离线使用） -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
+
+  <!-- 业务逻辑（顺序加载：storage → ocr → charts → app） -->
+  <script src="js/storage.js"></script>
+  <script src="js/ocr.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
