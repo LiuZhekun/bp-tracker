@@ -22,13 +22,11 @@ const PRECACHE_ASSETS = [
 // 预缓存的 CDN 资源（首次 install 时也一并下载，确保离线可用）
 const PRECACHE_CDN = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js',
 ];
 
-// 需要运行时缓存的 CDN 域名（Tesseract WASM/语言包在首次 OCR 时加载）
+// 需要运行时缓存的 CDN 域名
 const CDN_ORIGINS = [
   'cdn.jsdelivr.net',
-  'tessdata.projectnaptha.com',
 ];
 
 // ===== install：预缓存所有本地 + CDN 资源 =====

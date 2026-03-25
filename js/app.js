@@ -1,341 +1,271 @@
 /**
- * app.js - 主应用逻辑
- * 负责：视图切换、拍照OCR、语音输入、表单保存、历史记录渲染、导出
+ * app.js - 主逻辑
+ * 语音输入 / 手动填写 / 保存 / 图表 / 历史
  */
 
-// ===== 当前激活视图 =====
-let currentView = 'add';
-// 当前图表时间范围
+let currentView  = 'add';
 let currentRange = 'day';
-// 待删除的记录 id
 let pendingDeleteId = null;
+let recognition  = null;
 
-// ===== DOM 元素引用 =====
 const $ = id => document.getElementById(id);
-const cameraInput  = $('camera-input');
-const photoPreview = $('photo-preview');
-const previewImg   = $('preview-img');
-const ocrStatus    = $('ocr-status');
-const inputSys     = $('input-sys');
-const inputDia     = $('input-dia');
-const inputPulse   = $('input-pulse');
-const inputTime    = $('input-time');
-const inputNote    = $('input-note');
 
 // ===== 初始化 =====
 document.addEventListener('DOMContentLoaded', () => {
   setDefaultTime();
-  bindEvents();
-  registerSW();
+  bindNav();
+  bindAdd();
+  bindHistory();
   checkVoiceSupport();
+  registerSW();
 });
 
-// 将当前时间设为默认测量时间
-function setDefaultTime() {
-  const now = new Date();
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-    .toISOString().slice(0, 16);
-  inputTime.value = local;
-}
-
-// ===== 注册 Service Worker =====
 function registerSW() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 }
 
-// 检查语音支持，不支持时隐藏按钮
+// 检测语音支持；不支持则隐藏麦克风按钮
 function checkVoiceSupport() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
+  if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
     $('voice-btn').style.display = 'none';
   }
 }
 
-// ===== 绑定所有事件 =====
-function bindEvents() {
-  // 底部导航切换
-  document.querySelectorAll('.nav-btn').forEach(btn => {
+// 设置当前时间为默认值
+function setDefaultTime() {
+  const now = new Date();
+  $('input-time').value = new Date(now - now.getTimezoneOffset() * 60000)
+    .toISOString().slice(0, 16);
+}
+
+// ===== 导航 =====
+function bindNav() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
+}
 
-  // 拍照按钮
-  $('take-photo-btn').addEventListener('click', () => cameraInput.click());
-  cameraInput.addEventListener('change', onPhotoSelected);
+function switchView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.view === view)
+  );
+  currentView = view;
+  if (view === 'chart')   renderChart();
+  if (view === 'history') renderHistory();
+}
 
-  // 语音按钮
-  $('voice-btn').addEventListener('click', startVoiceInput);
-  $('voice-stop-btn').addEventListener('click', stopVoiceInput);
+// ===== 录入页事件 =====
+function bindAdd() {
+  // 语音
+  $('voice-btn').addEventListener('click', startVoice);
+  $('voice-stop-btn').addEventListener('click', stopVoice);
 
-  // 保存按钮
-  $('save-btn').addEventListener('click', onSave);
-
-  // 导出 CSV
-  $('export-btn').addEventListener('click', () => {
-    const ok = Storage.exportCSV();
-    showToast(ok ? '✅ 已导出 CSV 文件' : '⚠️ 暂无数据可导出');
-  });
-
-  // 时间范围选择
-  document.querySelectorAll('.range-btn').forEach(btn => {
+  // 图表时间范围
+  document.querySelectorAll('.seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentRange = btn.dataset.range;
       renderChart();
     });
   });
 
-  // 删除确认弹窗
+  // 保存
+  $('save-btn').addEventListener('click', onSave);
+
+  // 删除确认
   $('confirm-ok').addEventListener('click', () => {
     if (pendingDeleteId) {
       Storage.remove(pendingDeleteId);
       pendingDeleteId = null;
       $('confirm-modal').classList.add('hidden');
       renderHistory();
-      showToast('✅ 已删除');
+      toast('已删除');
     }
   });
-
   $('confirm-cancel').addEventListener('click', () => {
     pendingDeleteId = null;
     $('confirm-modal').classList.add('hidden');
   });
 }
 
-// =========================================================
-// ===== 语音输入
-// =========================================================
-let recognition = null;
+// ===== 语音输入 =====
+function startVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('⚠️ 请使用 Safari 浏览器'); return; }
 
-function startVoiceInput() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    showToast('⚠️ 当前浏览器不支持语音识别，请用 Safari');
-    return;
-  }
+  // 切换 UI 状态
+  $('voice-idle').classList.add('hidden');
+  $('voice-recording').classList.remove('hidden');
+  $('voice-interim').textContent = '';
 
-  // 显示语音面板，隐藏照片预览
-  photoPreview.classList.add('hidden');
-  $('voice-panel').classList.remove('hidden');
-  $('voice-result').textContent = '';
+  recognition = new SR();
+  recognition.lang = 'zh-CN';
+  recognition.continuous = false;
+  recognition.interimResults = true;
 
-  recognition = new SpeechRecognition();
-  recognition.lang = 'zh-CN';        // 普通话识别
-  recognition.continuous = false;    // 说完一句自动停止
-  recognition.interimResults = true; // 显示实时中间结果
+  recognition.onresult = e => {
+    const text = Array.from(e.results).map(r => r[0].transcript).join('');
+    $('voice-interim').textContent = text;
 
-  // 实时显示识别中的内容
-  recognition.onresult = (event) => {
-    const interim = Array.from(event.results)
-      .map(r => r[0].transcript)
-      .join('');
-    $('voice-result').textContent = interim;
-
-    // 最终结果：解析血压数据
-    if (event.results[event.results.length - 1].isFinal) {
-      const finalText = interim;
-      console.log('[语音] 识别文本:', finalText);
-      const parsed = parseSpeechInput(finalText);
+    if (e.results[e.results.length - 1].isFinal) {
+      const parsed = parseSpeech(text);
+      stopVoice();
       if (parsed) {
-        fillFormFromVoice(parsed);
+        fillForm(parsed);
+        toast('✅ 识别成功，请确认数值');
       } else {
-        $('voice-hint').textContent = '未识别到血压数据，请重试';
+        toast('⚠️ 未识别到血压数值，请重试或手动填写');
       }
     }
   };
 
-  recognition.onerror = (e) => {
-    console.error('[语音] 错误:', e.error);
-    const msgs = {
-      'not-allowed': '请允许麦克风权限',
-      'no-speech':   '未检测到声音，请重试',
-      'network':     '网络错误，请检查连接',
-    };
-    showToast('⚠️ ' + (msgs[e.error] || '语音识别失败，请重试'));
-    stopVoiceInput();
+  recognition.onerror = e => {
+    stopVoice();
+    const map = { 'not-allowed': '请允许麦克风权限', 'no-speech': '未检测到声音' };
+    toast('⚠️ ' + (map[e.error] || '语音识别失败'));
   };
 
-  recognition.onend = () => {
-    // 识别结束后延迟关闭面板（让用户看到结果）
-    setTimeout(() => {
-      $('voice-panel').classList.add('hidden');
-    }, 1200);
-  };
-
+  recognition.onend = stopVoice;
   recognition.start();
 }
 
-function stopVoiceInput() {
-  if (recognition) {
-    recognition.stop();
-    recognition = null;
-  }
-  $('voice-panel').classList.add('hidden');
+function stopVoice() {
+  if (recognition) { try { recognition.stop(); } catch (_) {} recognition = null; }
+  $('voice-idle').classList.remove('hidden');
+  $('voice-recording').classList.add('hidden');
 }
 
 /**
- * 解析语音识别文本，提取血压三项数值
- * 支持格式：
- *   "高压130低压85心率72"
- *   "收缩压135 舒张压82 脉搏75"
- *   "130 85 72"（三个数字）
- *   "一百三十 八十五 七十二"（中文数字）
+ * 解析语音文本，支持：
+ * "高压130低压85心率72"
+ * "收缩压135舒张压82脉搏75"
+ * "130 85 72"（按顺序三个数）
+ * "一百三十 八十五 七十二"（中文数字）
  */
-function parseSpeechInput(text) {
-  // 第一步：中文数字转阿拉伯数字
-  const normalized = convertChineseNumbers(text);
-  console.log('[语音] 归一化后:', normalized);
+function parseSpeech(text) {
+  const s = cnToNum(text); // 中文数字转阿拉伯
+  console.log('[Voice] 归一化:', s);
 
-  let sys = null, dia = null, pulse = null;
+  // 关键词优先匹配
+  const sysM   = s.match(/(?:高压|收缩压|上压)\D*?(\d{2,3})/);
+  const diaM   = s.match(/(?:低压|舒张压|下压)\D*?(\d{2,3})/);
+  const pulseM = s.match(/(?:心率|脉搏|脉)\D*?(\d{2,3})/);
 
-  // 关键词匹配（优先，准确率最高）
-  const sysMatch   = normalized.match(/(?:高压|收缩压|上压)[^\d]*(\d{2,3})/);
-  const diaMatch   = normalized.match(/(?:低压|舒张压|下压)[^\d]*(\d{2,3})/);
-  const pulseMatch = normalized.match(/(?:心率|脉搏|脉|搏)[^\d]*(\d{2,3})/);
+  let sys   = sysM   ? +sysM[1]   : null;
+  let dia   = diaM   ? +diaM[1]   : null;
+  let pulse = pulseM ? +pulseM[1] : null;
 
-  if (sysMatch)   sys   = parseInt(sysMatch[1]);
-  if (diaMatch)   dia   = parseInt(diaMatch[1]);
-  if (pulseMatch) pulse = parseInt(pulseMatch[1]);
-
-  // 如果关键词没匹配到，尝试按顺序提取所有2~3位数字（高压>低压>心率 的常见说法顺序）
+  // 关键词未匹配则按数字顺序分配
   if (!sys || !dia) {
-    const allNums = [...normalized.matchAll(/\d{2,3}/g)].map(m => parseInt(m[0]));
-    const validSys   = allNums.filter(n => n >= 90  && n <= 220);
-    const validDia   = allNums.filter(n => n >= 50  && n <= 130);
-    const validPulse = allNums.filter(n => n >= 45  && n <= 130);
-
-    if (!sys   && validSys.length   > 0) sys   = validSys[0];
-    if (!dia   && validDia.length   > 0) dia   = validDia.find(n => n !== sys) ?? null;
-    if (!pulse && validPulse.length > 0) pulse = validPulse.find(n => n !== sys && n !== dia) ?? null;
+    const nums = [...s.matchAll(/\d{2,3}/g)].map(m => +m[0]);
+    const sArr = nums.filter(n => n >= 90  && n <= 210);
+    const dArr = nums.filter(n => n >= 50  && n <= 130);
+    const pArr = nums.filter(n => n >= 45  && n <= 130);
+    if (!sys && sArr.length)               sys   = sArr[0];
+    if (!dia && dArr.length)               dia   = dArr.find(n => n !== sys)  ?? null;
+    if (!pulse && pArr.length)             pulse = pArr.find(n => n !== sys && n !== dia) ?? null;
   }
 
-  // 验证
   if (sys && dia && sys > dia && sys >= 90 && dia >= 50) {
     return { sys, dia, pulse };
   }
   return null;
 }
 
-/**
- * 中文数字转阿拉伯数字
- * 支持："一百三十" → 130，"八十五" → 85，"七十二" → 72
- */
-function convertChineseNumbers(text) {
-  const CN_NUM  = { '零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9 };
-  const CN_UNIT = { '十':10,'百':100 };
-
-  return text.replace(/[一二三四五六七八九零十百]+/g, (match) => {
-    let result = 0, cur = 0;
-    for (const ch of match) {
-      if (ch in CN_NUM) {
-        cur = CN_NUM[ch];
-      } else if (ch in CN_UNIT) {
-        const unit = CN_UNIT[ch];
-        if (unit === 10 && cur === 0) cur = 1; // "十五" → 15（十前省略一）
-        result += cur * unit;
+// 中文数字 → 阿拉伯数字（支持：一百三十、八十五 等）
+function cnToNum(text) {
+  const N = { 零:0,一:1,二:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9 };
+  const U = { 十:10, 百:100 };
+  return text.replace(/[一二三四五六七八九零十百]+/g, m => {
+    let r = 0, cur = 0;
+    for (const c of m) {
+      if (c in N) { cur = N[c]; }
+      else if (c in U) {
+        r += (cur || (U[c] === 10 ? 1 : 0)) * U[c];
         cur = 0;
       }
     }
-    return String(result + cur);
+    return String(r + cur);
   });
 }
 
-// 将语音解析结果填入表单
-function fillFormFromVoice({ sys, dia, pulse }) {
-  if (sys)   inputSys.value   = sys;
-  if (dia)   inputDia.value   = dia;
-  if (pulse) inputPulse.value = pulse;
-
-  const msg = `✅ ${sys}/${dia}` + (pulse ? ` 心率${pulse}` : '');
-  $('voice-result').textContent = msg;
-  showToast('✅ 语音识别成功，请确认数值');
+function fillForm({ sys, dia, pulse }) {
+  if (sys)   $('input-sys').value   = sys;
+  if (dia)   $('input-dia').value   = dia;
+  if (pulse) $('input-pulse').value = pulse;
 }
 
-// =========================================================
-// ===== 拍照 OCR
-// =========================================================
-async function onPhotoSelected(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  $('voice-panel').classList.add('hidden');
-  const url = URL.createObjectURL(file);
-  previewImg.src = url;
-  photoPreview.classList.remove('hidden');
-  ocrStatus.className = 'ocr-status';
-  ocrStatus.textContent = '⏳ 正在识别数据...';
-
-  previewImg.onload = async () => {
-    try {
-      const result = await OCR.recognize(previewImg);
-      if (result) {
-        if (result.sys)   inputSys.value   = result.sys;
-        if (result.dia)   inputDia.value   = result.dia;
-        if (result.pulse) inputPulse.value = result.pulse;
-        ocrStatus.className = 'ocr-status success';
-        ocrStatus.textContent = `✅ 识别成功：${result.sys}/${result.dia}` + (result.pulse ? ` 心率${result.pulse}` : '');
-      } else {
-        ocrStatus.className = 'ocr-status error';
-        ocrStatus.textContent = '⚠️ 识别不准确，请手动填写或改用语音输入';
-      }
-    } catch {
-      ocrStatus.className = 'ocr-status error';
-      ocrStatus.textContent = '⚠️ 识别失败，请手动填写或改用语音输入';
-    }
-    cameraInput.value = '';
-  };
-}
-
-// =========================================================
-// ===== 保存记录
-// =========================================================
+// ===== 保存 =====
 function onSave() {
-  const sys   = parseInt(inputSys.value);
-  const dia   = parseInt(inputDia.value);
-  const pulse = inputPulse.value ? parseInt(inputPulse.value) : null;
-  const time  = inputTime.value;
-  const note  = inputNote.value.trim();
+  const sys   = +$('input-sys').value;
+  const dia   = +$('input-dia').value;
+  const pulse = $('input-pulse').value ? +$('input-pulse').value : null;
+  const time  = $('input-time').value;
+  const note  = $('input-note').value.trim();
 
-  if (!sys || !dia)  { showToast('⚠️ 请填写收缩压和舒张压'); return; }
-  if (sys <= dia)    { showToast('⚠️ 收缩压应大于舒张压');   return; }
-  if (!time)         { showToast('⚠️ 请选择测量时间');       return; }
+  if (!sys || !dia)  { toast('⚠️ 请填写收缩压和舒张压'); return; }
+  if (sys <= dia)    { toast('⚠️ 收缩压应大于舒张压');   return; }
+  if (!time)         { toast('⚠️ 请选择测量时间');       return; }
 
   Storage.save({ sys, dia, pulse, time, note });
-  showToast('✅ 记录已保存');
+  toast('✅ 已保存');
 
-  inputSys.value = '';
-  inputDia.value = '';
-  inputPulse.value = '';
-  inputNote.value = '';
+  $('input-sys').value = $('input-dia').value = $('input-pulse').value = $('input-note').value = '';
   setDefaultTime();
-  photoPreview.classList.add('hidden');
-  previewImg.src = '';
 }
 
-// ===== 渲染图表视图 =====
+// ===== 图表 =====
 function renderChart() {
-  const records = Storage.getByRange(currentRange);
-  Charts.render(records, currentRange);
+  Charts.render(Storage.getByRange(currentRange), currentRange);
 }
 
-// ===== 渲染历史记录列表 =====
+// ===== 历史记录 =====
+function bindHistory() {
+  $('export-btn').addEventListener('click', () => {
+    toast(Storage.exportCSV() ? '✅ 已导出 CSV' : '⚠️ 暂无数据');
+  });
+}
+
 function renderHistory() {
   const records = Storage.getAll();
   const list    = $('record-list');
-  const noData  = $('no-data-history');
+  const empty   = $('no-data-history');
 
-  if (records.length === 0) {
+  if (!records.length) {
     list.innerHTML = '';
-    noData.classList.remove('hidden');
+    empty.classList.remove('hidden');
     return;
   }
 
-  noData.classList.add('hidden');
-  list.innerHTML = records.map(r => buildRecordHTML(r)).join('');
+  empty.classList.add('hidden');
+  list.innerHTML = records.map(r => {
+    const tag    = bpTag(r.sys, r.dia);
+    const time   = fmtTime(r.time);
+    const pulse  = r.pulse ? `❤️ 心率 ${r.pulse} 次/分` : '';
+    const note   = r.note  ? esc(r.note) : '';
+    return `
+      <div class="record-item">
+        <div class="record-bp">
+          <span class="r-sys">${r.sys}</span>
+          <span class="r-slash">/</span>
+          <span class="r-dia">${r.dia}</span>
+        </div>
+        <div class="record-info">
+          <div class="r-time">${time}</div>
+          ${pulse ? `<div class="r-pulse">${pulse}</div>` : ''}
+          ${note  ? `<div class="r-note">${note}</div>`  : ''}
+        </div>
+        <span class="r-tag ${tag.cls}">${tag.label}</span>
+        <button class="r-del" data-id="${r.id}">×</button>
+      </div>`;
+  }).join('');
 
-  list.querySelectorAll('.record-delete-btn').forEach(btn => {
+  list.querySelectorAll('.r-del').forEach(btn => {
     btn.addEventListener('click', () => {
       pendingDeleteId = btn.dataset.id;
       $('confirm-modal').classList.remove('hidden');
@@ -343,58 +273,27 @@ function renderHistory() {
   });
 }
 
-// 构建单条记录的 HTML
-function buildRecordHTML(r) {
-  const tag      = getBPTag(r.sys, r.dia);
-  const timeStr  = formatRecordTime(r.time);
-  const pulseStr = r.pulse ? `心率 ${r.pulse} 次/分` : '';
-  const noteStr  = r.note  ? `· ${r.note}` : '';
-
-  return `
-    <div class="record-item">
-      <div class="record-bp">
-        <span class="record-sys">${r.sys}</span>
-        <span class="record-slash">/</span>
-        <span class="record-dia">${r.dia}</span>
-      </div>
-      <div class="record-info">
-        <div class="record-time">${timeStr}</div>
-        ${pulseStr ? `<div class="record-pulse">❤️ ${pulseStr}</div>` : ''}
-        ${noteStr  ? `<div class="record-note">${escapeHTML(noteStr)}</div>` : ''}
-      </div>
-      <span class="record-tag ${tag.cls}">${tag.label}</span>
-      <button class="record-delete-btn" data-id="${r.id}" title="删除">×</button>
-    </div>
-  `;
+// 血压分级（参考中国高血压指南）
+function bpTag(sys, dia) {
+  if (sys < 90 || dia < 60)  return { cls: 'tag-low',  label: '偏低' };
+  if (sys < 120 && dia < 80) return { cls: 'tag-normal', label: '正常' };
+  if (sys < 140 && dia < 90) return { cls: 'tag-warn',  label: '偏高' };
+  return                             { cls: 'tag-high',  label: '高血压' };
 }
 
-function getBPTag(sys, dia) {
-  if (sys < 90 || dia < 60)  return { cls: 'tag-low',    label: '偏低' };
-  if (sys < 120 && dia < 80) return { cls: 'tag-normal',  label: '正常' };
-  if (sys < 130 && dia < 80) return { cls: 'tag-high-1',  label: '偏高' };
-  if (sys < 140 && dia < 90) return { cls: 'tag-high-1',  label: '高压前期' };
-  return                             { cls: 'tag-high-2',  label: '高血压' };
+function fmtTime(iso) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
+function p(n) { return String(n).padStart(2, '0'); }
+function esc(s) { return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-function formatRecordTime(isoStr) {
-  const d = new Date(isoStr);
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function pad(n) { return String(n).padStart(2, '0'); }
-
-function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, c =>
-    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
-  );
-}
-
-// ===== Toast 提示 =====
-let toastTimer = null;
-function showToast(msg) {
-  const toast = $('toast');
-  toast.textContent = msg;
-  toast.classList.remove('hidden');
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
+// ===== Toast =====
+let _tt = null;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.add('hidden'), 2400);
 }
