@@ -4,7 +4,7 @@
  */
 
 let currentView  = 'add';
-let currentRange = 'day';
+let currentRange = 'week7';
 let pendingDeleteId = null;
 let recognition  = null;
 

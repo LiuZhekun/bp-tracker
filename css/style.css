@@ -266,11 +266,28 @@ input::placeholder { color: var(--label3); }
 }
 
 /* =========================================
-   图表
+   图表区域
    ========================================= */
 .chart-wrap { padding: 14px 14px 10px; }
 
-#bp-chart { width: 100% !important; height: 210px !important; }
+.chart-title {
+  font-size: 13px; font-weight: 600;
+  color: var(--label2); text-transform: uppercase;
+  letter-spacing: .6px; margin-bottom: 8px;
+}
+
+/* 色带图例 */
+.chart-zone-legend {
+  display: flex; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;
+}
+.zl {
+  font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 10px;
+}
+.zl-green  { background: rgba(52,199,89,.18);  color: #248A3D; }
+.zl-yellow { background: rgba(255,204,0,.25);  color: #9E6000; }
+.zl-orange { background: rgba(255,149,0,.18);  color: #C93400; }
+.zl-red    { background: rgba(255,59,48,.15);  color: #D70015; }
 
 .chart-legend {
   display: flex; justify-content: center; gap: 16px;
@@ -280,12 +297,85 @@ input::placeholder { color: var(--label3); }
 .l-dia   { color: var(--dia-color); }
 .l-pulse { color: var(--pulse-color); }
 
-/* ===== 最近一次统计 ===== */
-.stats-card { padding: 16px 20px; }
-.stats-title {
-  font-size: 13px; font-weight: 600; color: var(--label2);
-  text-transform: uppercase; letter-spacing: .6px; margin-bottom: 12px;
+/* =========================================
+   统计卡片（横向滚动）
+   ========================================= */
+.stats-scroll {
+  display: flex; gap: 10px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: 2px 0 6px;
+  scrollbar-width: none;
 }
+.stats-scroll::-webkit-scrollbar { display: none; }
+
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  min-width: 155px; flex-shrink: 0;
+}
+
+.sc-header {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 8px;
+}
+.sc-title {
+  font-size: 12px; font-weight: 600;
+  color: var(--label2); text-transform: uppercase; letter-spacing: .5px;
+}
+.sc-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 2px 7px; border-radius: 10px;
+}
+.sc-main {
+  font-size: 28px; font-weight: 700; letter-spacing: -1px;
+  color: var(--label); line-height: 1.1;
+}
+.sc-main small { font-size: 14px; font-weight: 500; letter-spacing: 0; }
+.sc-sub {
+  font-size: 12px; color: var(--label2); margin-top: 4px;
+}
+
+/* badge 颜色 */
+.tag-green  { background: rgba(52,199,89,.18);  color: #248A3D; }
+.tag-yellow { background: rgba(255,204,0,.25);  color: #9E6000; }
+.tag-orange { background: rgba(255,149,0,.18);  color: #C93400; }
+.tag-red    { background: rgba(255,59,48,.15);  color: #D70015; }
+.tag-blue   { background: rgba(0,122,255,.12);  color: #0040DD; }
+
+/* =========================================
+   血压分布条形图
+   ========================================= */
+.dist-card { padding: 14px 16px; }
+
+.dist-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+.dist-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.dist-label {
+  font-size: 12px; color: var(--label2);
+  width: 72px; flex-shrink: 0; text-align: right;
+}
+.dist-bar-wrap {
+  flex: 1; height: 8px; background: var(--surface2);
+  border-radius: 4px; overflow: hidden;
+}
+.dist-bar {
+  height: 100%; border-radius: 4px;
+  transition: width .4s ease;
+}
+.dist-green  { background: #34C759; }
+.dist-yellow { background: #FFD60A; }
+.dist-orange { background: #FF9500; }
+.dist-red    { background: #FF3B30; }
+.dist-blue   { background: #007AFF; }
+
+.dist-val {
+  font-size: 12px; color: var(--label2);
+  width: 68px; flex-shrink: 0; text-align: right;
+}
+.dist-val em { font-style: normal; color: var(--label); font-weight: 600; }
 .stats-nums {
   display: flex; align-items: center; gap: 16px;
 }

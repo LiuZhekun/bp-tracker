@@ -1,110 +1,114 @@
 /**
- * storage.js - 血压数据的本地存储管理
- * 使用 localStorage 将数据保存在手机本地，不上传任何服务器
+ * storage.js - 血压数据本地存储 + 统计计算
  */
 
 const Storage = (() => {
-  const KEY = 'bp_records'; // localStorage 键名
+  const KEY = 'bp_records';
 
-  // 获取所有记录（按时间倒序）
   function getAll() {
     try {
       const raw = localStorage.getItem(KEY);
       return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      console.error('[Storage] 读取失败:', e);
-      return [];
-    }
+    } catch { return []; }
   }
 
-  // 保存一条新记录
   function save(record) {
     const records = getAll();
-    const newRecord = {
-      id: Date.now().toString(),
-      time: record.time,
-      sys: Number(record.sys),
-      dia: Number(record.dia),
+    const r = {
+      id:    Date.now().toString(),
+      time:  record.time,
+      sys:   Number(record.sys),
+      dia:   Number(record.dia),
       pulse: record.pulse ? Number(record.pulse) : null,
-      note: record.note || '',
+      note:  record.note || '',
     };
-    records.unshift(newRecord); // 最新的排在最前面
+    records.unshift(r);
     localStorage.setItem(KEY, JSON.stringify(records));
-    return newRecord;
+    return r;
   }
 
-  // 删除指定 id 的记录
   function remove(id) {
-    const records = getAll().filter(r => r.id !== id);
-    localStorage.setItem(KEY, JSON.stringify(records));
+    localStorage.setItem(KEY, JSON.stringify(getAll().filter(r => r.id !== id)));
   }
 
   /**
-   * 按时间维度筛选记录
-   * @param {'day'|'month30'|'month'|'year'} range
+   * 按时间范围筛选
+   * range: 'week7' | 'month30' | 'month90' | 'all'
    */
   function getByRange(range) {
     const all = getAll();
     const now = new Date();
-
-    if (range === 'day') {
-      // 今天：同年同月同日
-      return all.filter(r => {
-        const d = new Date(r.time);
-        return d.getFullYear() === now.getFullYear() &&
-               d.getMonth()    === now.getMonth()    &&
-               d.getDate()     === now.getDate();
-      });
-    }
-    if (range === 'month30') {
-      // 近30天
-      const cutoff = new Date(now);
-      cutoff.setDate(cutoff.getDate() - 30);
-      return all.filter(r => new Date(r.time) >= cutoff);
-    }
-    if (range === 'month') {
-      // 本月
-      return all.filter(r => {
-        const d = new Date(r.time);
-        return d.getFullYear() === now.getFullYear() &&
-               d.getMonth()    === now.getMonth();
-      });
-    }
-    if (range === 'year') {
-      // 今年
-      return all.filter(r => new Date(r.time).getFullYear() === now.getFullYear());
-    }
-    return all;
+    const daysAgo = d => { const c = new Date(now); c.setDate(c.getDate() - d); return c; };
+    if (range === 'week7')  return all.filter(r => new Date(r.time) >= daysAgo(7));
+    if (range === 'month30') return all.filter(r => new Date(r.time) >= daysAgo(30));
+    if (range === 'month90') return all.filter(r => new Date(r.time) >= daysAgo(90));
+    return all; // 'all'
   }
 
-  // 导出为 CSV 文件并触发下载
+  /**
+   * 计算统计摘要
+   * @returns {{ count, avgSys, avgDia, avgPulse, maxSys, minSys, targetRate, highCount, pp } | null}
+   */
+  function calcStats(records) {
+    if (!records.length) return null;
+    const avg = a => Math.round(a.reduce((s, v) => s + v, 0) / a.length);
+
+    const sysList   = records.map(r => r.sys);
+    const diaList   = records.map(r => r.dia);
+    const pulseList = records.filter(r => r.pulse).map(r => r.pulse);
+
+    const avgSys = avg(sysList);
+    const avgDia = avg(diaList);
+
+    // 达标率：家庭自测标准 SYS<135 且 DIA<85
+    const targetCount = records.filter(r => r.sys < 135 && r.dia < 85).length;
+
+    // 峰值预警次数：SYS≥140 或 DIA≥90
+    const highCount = records.filter(r => r.sys >= 140 || r.dia >= 90).length;
+
+    return {
+      count:      records.length,
+      avgSys,
+      avgDia,
+      avgPulse:   pulseList.length ? avg(pulseList) : null,
+      maxSys:     Math.max(...sysList),
+      minSys:     Math.min(...sysList),
+      targetRate: Math.round(targetCount / records.length * 100),
+      highCount,
+      pp:         avgSys - avgDia,  // 脉压差
+    };
+  }
+
+  /**
+   * 计算血压分布（按中国高血压指南分级）
+   * @returns {{ normal, elevated, high1, high2, low }}
+   */
+  function calcDistribution(records) {
+    const dist = { low: 0, normal: 0, elevated: 0, high1: 0, high2: 0 };
+    records.forEach(r => {
+      if (r.sys < 90  || r.dia < 60)  dist.low++;
+      else if (r.sys < 130 && r.dia < 85) dist.normal++;
+      else if (r.sys < 140 && r.dia < 90) dist.elevated++;
+      else if (r.sys < 160 && r.dia < 100) dist.high1++;
+      else dist.high2++;
+    });
+    return dist;
+  }
+
   function exportCSV() {
     const records = getAll();
-    if (records.length === 0) return false;
-
+    if (!records.length) return false;
     const headers = ['时间', '收缩压(mmHg)', '舒张压(mmHg)', '心率(次/分)', '备注'];
-    const rows = records.map(r => [
-      r.time,
-      r.sys,
-      r.dia,
-      r.pulse ?? '',
-      r.note,
-    ]);
-
-    // 加 BOM，让 Excel 正确识别 UTF-8 中文
+    const rows = records.map(r => [r.time, r.sys, r.dia, r.pulse ?? '', r.note]);
     const csv = '\uFEFF' + [headers, ...rows]
       .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
       .join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `血压记录_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = `血压记录_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click(); URL.revokeObjectURL(url);
     return true;
   }
 
-  return { getAll, save, remove, getByRange, exportCSV };
+  return { getAll, save, remove, getByRange, calcStats, calcDistribution, exportCSV };
 })();

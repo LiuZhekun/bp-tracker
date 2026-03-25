@@ -97,47 +97,60 @@
   <!-- ===== 视图2：图表 ===== -->
   <div id="view-chart" class="view">
     <header class="page-header">
-      <h1>趋势图表</h1>
+      <h1>健康统计</h1>
     </header>
     <main class="page-main">
 
+      <!-- 时间范围 -->
       <div class="seg-control">
-        <button class="seg-btn active" data-range="day">今天</button>
-        <button class="seg-btn" data-range="month30">近一月</button>
-        <button class="seg-btn" data-range="month">本月</button>
-        <button class="seg-btn" data-range="year">今年</button>
+        <button class="seg-btn active" data-range="week7">近7天</button>
+        <button class="seg-btn" data-range="month30">近30天</button>
+        <button class="seg-btn" data-range="month90">近3月</button>
+        <button class="seg-btn" data-range="all">全部</button>
       </div>
 
-      <div id="chart-wrap" class="card chart-wrap">
-        <canvas id="bp-chart"></canvas>
-        <div class="chart-legend">
-          <span class="l-sys">● 收缩压</span>
-          <span class="l-dia">● 舒张压</span>
-          <span class="l-pulse">● 心率</span>
-        </div>
-      </div>
-
+      <!-- 无数据提示 -->
       <div id="no-data-chart" class="empty-state hidden">
-        <p>📊</p>
-        <p>暂无数据</p>
+        <p>📊</p><p>暂无数据</p>
         <p class="empty-sub">请先在录入页添加记录</p>
       </div>
 
-      <div id="latest-stats" class="card stats-card hidden">
-        <p class="stats-title">最近一次测量</p>
-        <div class="stats-nums">
-          <div class="stats-bp">
-            <span id="stat-sys" class="snum sys">--</span>
-            <span class="sdiv">/</span>
-            <span id="stat-dia" class="snum dia">--</span>
-            <span class="sunit">mmHg</span>
+      <!-- 有数据时显示 -->
+      <div id="stats-section" class="hidden">
+        <!-- 4张统计卡片（横向滚动）-->
+        <div class="stats-scroll">
+          <div class="stat-card" id="stat-avg"></div>
+          <div class="stat-card" id="stat-target"></div>
+          <div class="stat-card" id="stat-peak"></div>
+          <div class="stat-card" id="stat-pp"></div>
+        </div>
+      </div>
+
+      <div id="chart-section" class="hidden">
+        <!-- 趋势折线图（带色带）-->
+        <div class="card chart-wrap">
+          <p class="chart-title">血压趋势</p>
+          <div class="chart-zone-legend">
+            <span class="zl zl-green">正常</span>
+            <span class="zl zl-yellow">正常高值</span>
+            <span class="zl zl-orange">1级</span>
+            <span class="zl zl-red">2级↑</span>
           </div>
-          <div class="stats-pulse">
-            <span id="stat-pulse" class="snum pulse">--</span>
-            <span class="sunit">次/分</span>
+          <div style="position:relative;height:220px">
+            <canvas id="bp-chart"></canvas>
+          </div>
+          <div class="chart-legend">
+            <span class="l-sys">● 收缩压</span>
+            <span class="l-dia">● 舒张压</span>
+            <span class="l-pulse">● 心率</span>
           </div>
         </div>
-        <p id="stat-time" class="stats-time"></p>
+
+        <!-- 血压分布 -->
+        <div class="card dist-card">
+          <p class="chart-title">血压分布</p>
+          <div id="dist-bars" class="dist-bars"></div>
+        </div>
       </div>
 
     </main>
