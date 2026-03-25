@@ -1,10 +1,9 @@
 /**
  * charts.js - 血压趋势图 + 统计渲染
  *
- * 功能：
- * 1. 带色带的折线图（绿/黄/橙/红区间）
- * 2. 4张统计卡片（平均值/达标率/峰值/脉压差）
- * 3. 血压分布进度条
+ * 聚合策略：
+ * - 近7天：原始数据点（每次测量单独显示）
+ * - 近30天/近3月/全部：按天聚合 → 均值线 + 当日最高/最低阴影区间
  */
 
 const Charts = (() => {
@@ -48,12 +47,9 @@ const Charts = (() => {
    */
   function render(records, range) {
     const hasData = records && records.length > 0;
-
-    // 空状态处理
     document.getElementById('no-data-chart').classList.toggle('hidden', hasData);
     document.getElementById('chart-section').classList.toggle('hidden', !hasData);
     document.getElementById('stats-section').classList.toggle('hidden', !hasData);
-
     if (!hasData) return;
 
     renderTrend(records, range);
@@ -61,50 +57,24 @@ const Charts = (() => {
     renderDistribution(records);
   }
 
-  // ===== 折线图（带色带）=====
+  // ===== 折线图（带色带 + 智能聚合）=====
   function renderTrend(records, range) {
     const sorted = [...records].sort((a, b) => new Date(a.time) - new Date(b.time));
 
-    const labels   = sorted.map(r => fmtAxis(r.time, range));
-    const sysData  = sorted.map(r => r.sys);
-    const diaData  = sorted.map(r => r.dia);
-    const pulseData = sorted.map(r => r.pulse);
+    // 近7天：原始点；其他：按天聚合
+    const isRaw  = range === 'week7';
+    const data   = isRaw ? buildRawData(sorted) : buildDailyData(sorted);
 
     if (trendChart) { trendChart.destroy(); trendChart = null; }
 
+    // 更新聚合说明文字
+    const hint = document.getElementById('chart-hint');
+    if (hint) hint.textContent = isRaw ? '每个点代表一次测量' : '折线为每日均值，阴影为当日波动范围';
+
     trendChart = new Chart(document.getElementById('bp-chart'), {
       type: 'line',
-      plugins: [bpZonePlugin],  // 注入色带插件
-      data: {
-        labels,
-        datasets: [
-          {
-            label: '收缩压',
-            data: sysData,
-            borderColor: '#FF3B30',
-            backgroundColor: 'rgba(255,59,48,0.06)',
-            borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
-            tension: 0.3, fill: false,
-          },
-          {
-            label: '舒张压',
-            data: diaData,
-            borderColor: '#007AFF',
-            backgroundColor: 'rgba(0,122,255,0.06)',
-            borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
-            tension: 0.3, fill: false,
-          },
-          {
-            label: '心率',
-            data: pulseData,
-            borderColor: '#34C759',
-            backgroundColor: 'transparent',
-            borderWidth: 2, borderDash: [5, 4],
-            pointRadius: 3, pointHoverRadius: 5,
-            tension: 0.3, fill: false, spanGaps: true,
-          },
-        ],
-      },
+      plugins: [bpZonePlugin],
+      data: { labels: data.labels, datasets: buildDatasets(data, isRaw) },
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -113,8 +83,17 @@ const Charts = (() => {
           legend: { display: false },
           tooltip: {
             callbacks: {
+              title: (items) => {
+                const label = items[0]?.label || '';
+                // 显示当天测量次数
+                const idx = items[0]?.dataIndex;
+                const cnt = data.counts?.[idx];
+                return cnt > 1 ? `${label}（${cnt}次均值）` : label;
+              },
               label: ctx => {
-                if (ctx.parsed.y == null) return null;
+                if (ctx.dataset.hidden || ctx.parsed.y == null) return null;
+                // 隐藏区间辅助线的 tooltip
+                if (ctx.dataset.label.startsWith('_')) return null;
                 const u = ctx.dataset.label === '心率' ? '次/分' : 'mmHg';
                 return ` ${ctx.dataset.label}: ${ctx.parsed.y} ${u}`;
               },
@@ -127,6 +106,103 @@ const Charts = (() => {
         },
       },
     });
+  }
+
+  // 原始数据（近7天：每次测量一个点）
+  function buildRawData(sorted) {
+    return {
+      labels:  sorted.map(r => fmtRaw(r.time)),
+      sys:     sorted.map(r => r.sys),
+      dia:     sorted.map(r => r.dia),
+      pulse:   sorted.map(r => r.pulse),
+      counts:  sorted.map(() => 1),
+    };
+  }
+
+  // 按天聚合数据（均值 + 最高/最低）
+  function buildDailyData(sorted) {
+    const map = {};
+    sorted.forEach(r => {
+      const day = r.time.slice(0, 10);
+      if (!map[day]) map[day] = { sys: [], dia: [], pulse: [] };
+      map[day].sys.push(r.sys);
+      map[day].dia.push(r.dia);
+      if (r.pulse) map[day].pulse.push(r.pulse);
+    });
+
+    const days = Object.keys(map).sort();
+    const avg  = a => Math.round(a.reduce((s, v) => s + v, 0) / a.length);
+
+    return {
+      labels:   days.map(fmtDay),
+      sys:      days.map(d => avg(map[d].sys)),
+      sysMax:   days.map(d => Math.max(...map[d].sys)),
+      sysMin:   days.map(d => Math.min(...map[d].sys)),
+      dia:      days.map(d => avg(map[d].dia)),
+      diaMax:   days.map(d => Math.max(...map[d].dia)),
+      diaMin:   days.map(d => Math.min(...map[d].dia)),
+      pulse:    days.map(d => map[d].pulse.length ? avg(map[d].pulse) : null),
+      counts:   days.map(d => map[d].sys.length),
+    };
+  }
+
+  // 构建 Chart.js datasets
+  function buildDatasets(data, isRaw) {
+    const sets = [];
+
+    if (!isRaw) {
+      // 收缩压区间（上边界，填充到下边界）
+      sets.push({
+        label: '_sysMax', data: data.sysMax,
+        borderColor: 'transparent', backgroundColor: 'rgba(255,59,48,0.12)',
+        borderWidth: 0, pointRadius: 0, fill: '+1', tension: 0.3,
+      });
+      // 收缩压区间（下边界）
+      sets.push({
+        label: '_sysMin', data: data.sysMin,
+        borderColor: 'transparent', backgroundColor: 'transparent',
+        borderWidth: 0, pointRadius: 0, fill: false, tension: 0.3,
+      });
+      // 舒张压区间
+      sets.push({
+        label: '_diaMax', data: data.diaMax,
+        borderColor: 'transparent', backgroundColor: 'rgba(0,122,255,0.10)',
+        borderWidth: 0, pointRadius: 0, fill: '+1', tension: 0.3,
+      });
+      sets.push({
+        label: '_diaMin', data: data.diaMin,
+        borderColor: 'transparent', backgroundColor: 'transparent',
+        borderWidth: 0, pointRadius: 0, fill: false, tension: 0.3,
+      });
+    }
+
+    // 收缩压均值线
+    sets.push({
+      label: '收缩压',
+      data: data.sys,
+      borderColor: '#FF3B30', backgroundColor: 'transparent',
+      borderWidth: 2.5, pointRadius: isRaw ? 4 : 3,
+      pointHoverRadius: 6, tension: 0.3, fill: false,
+    });
+    // 舒张压均值线
+    sets.push({
+      label: '舒张压',
+      data: data.dia,
+      borderColor: '#007AFF', backgroundColor: 'transparent',
+      borderWidth: 2.5, pointRadius: isRaw ? 4 : 3,
+      pointHoverRadius: 6, tension: 0.3, fill: false,
+    });
+    // 心率
+    sets.push({
+      label: '心率',
+      data: data.pulse,
+      borderColor: '#34C759', backgroundColor: 'transparent',
+      borderWidth: 2, borderDash: [5, 4],
+      pointRadius: isRaw ? 3 : 2, pointHoverRadius: 5,
+      tension: 0.3, fill: false, spanGaps: true,
+    });
+
+    return sets;
   }
 
   // ===== 统计卡片 =====
@@ -211,13 +287,15 @@ const Charts = (() => {
       </div>`).join('');
   }
 
-  // X 轴时间格式
-  function fmtAxis(iso, range) {
+  // 原始点时间标签：M/D HH:mm
+  function fmtRaw(iso) {
     const d = new Date(iso);
-    const hm = `${p(d.getHours())}:${p(d.getMinutes())}`;
-    if (range === 'week7') return `${d.getMonth()+1}/${d.getDate()} ${hm}`;
-    if (range === 'month90' || range === 'all') return `${d.getMonth()+1}/${d.getDate()}`;
-    return `${d.getMonth()+1}/${d.getDate()} ${hm}`;
+    return `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  // 按天聚合时间标签：M/D
+  function fmtDay(dateStr) {
+    const d = new Date(dateStr);
+    return `${d.getMonth()+1}/${d.getDate()}`;
   }
 
   // 根据血压值判断等级
