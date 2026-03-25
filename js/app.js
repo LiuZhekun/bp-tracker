@@ -33,17 +33,28 @@ function checkVoiceSupport() {
   }
 }
 
+// 返回本地时间的 ISO 字符串（YYYY-MM-DDTHH:mm）
+function nowLocalISO() {
+  const now = new Date();
+  return new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 // 设置当前时间为默认值
 function setDefaultTime() {
-  const now = new Date();
-  $('input-time').value = new Date(now - now.getTimezoneOffset() * 60000)
-    .toISOString().slice(0, 16);
+  $('input-time').value = nowLocalISO();
 }
 
 // ===== 导航 =====
 function bindNav() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+  // 图例按钮：点击切换单条数据线
+  document.querySelectorAll('.l-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const hidden = Charts.toggleSeries(btn.dataset.series);
+      btn.classList.toggle('inactive', hidden);
+    });
   });
 }
 
@@ -205,18 +216,20 @@ function onSave() {
   const sys   = +$('input-sys').value;
   const dia   = +$('input-dia').value;
   const pulse = $('input-pulse').value ? +$('input-pulse').value : null;
-  const time  = $('input-time').value;
   const note  = $('input-note').value.trim();
+
+  // 时间：用户手动改了就用用户填的，否则用当前时间（录入时刻）
+  const timeInput = $('input-time').value;
+  const time = timeInput || nowLocalISO();
 
   if (!sys || !dia)  { toast('⚠️ 请填写收缩压和舒张压'); return; }
   if (sys <= dia)    { toast('⚠️ 收缩压应大于舒张压');   return; }
-  if (!time)         { toast('⚠️ 请选择测量时间');       return; }
 
   Storage.save({ sys, dia, pulse, time, note });
   toast('✅ 已保存');
 
   $('input-sys').value = $('input-dia').value = $('input-pulse').value = $('input-note').value = '';
-  setDefaultTime();
+  setDefaultTime(); // 重置为当前时间，方便下次录入
 }
 
 // ===== 图表 =====

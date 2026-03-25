@@ -294,9 +294,16 @@ input::placeholder { color: var(--label3); }
   margin-bottom: 6px; text-align: center;
 }
 
-  display: flex; justify-content: center; gap: 16px;
-  margin-top: 10px; font-size: 12px; font-weight: 600;
+.chart-legend {
+  display: flex; justify-content: center; gap: 10px;
+  margin-top: 10px;
 }
+.l-toggle {
+  border: none; background: transparent; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  padding: 4px 10px; border-radius: 12px; transition: opacity .2s;
+}
+.l-toggle.inactive { opacity: 0.28; text-decoration: line-through; }
 .l-sys   { color: var(--sys-color); }
 .l-dia   { color: var(--dia-color); }
 .l-pulse { color: var(--pulse-color); }
