@@ -115,6 +115,17 @@ const Charts = (() => {
 
     if (trendChart) { trendChart.destroy(); trendChart = null; }
 
+    // 动态调整图表宽度：数据点多时横向扩展，防止拥挤
+    const scrollWrap  = document.getElementById('chart-scroll-wrap');
+    const scrollInner = document.getElementById('chart-scroll-inner');
+    if (scrollWrap && scrollInner) {
+      const containerW = scrollWrap.clientWidth || 280;
+      // 每个数据点最小占用像素：原始点 30px，按天均值 34px
+      const ptW = isRaw ? 30 : 34;
+      const minW = Math.max(containerW, data.labels.length * ptW);
+      scrollInner.style.width = minW + 'px';
+    }
+
     // 设置区间阴影数据（供 rangeBandPlugin 使用）
     bandsConfig = isRaw ? null : [
       { maxData: data.sysMax, minData: data.sysMin, color: 'rgba(255,59,48,0.13)',  hidden: false },
@@ -173,7 +184,7 @@ const Charts = (() => {
           },
         },
         scales: {
-          x: { ticks: { maxTicksLimit: 6, font: { size: 10 }, color: 'rgba(60,60,67,.6)' }, grid: { color: 'rgba(0,0,0,.04)' } },
+          x: { ticks: { maxTicksLimit: Math.min(data.labels.length, 12), font: { size: 10 }, color: 'rgba(60,60,67,.6)' }, grid: { color: 'rgba(0,0,0,.04)' } },
           y: { min: 50, max: 200, ticks: { font: { size: 10 }, color: 'rgba(60,60,67,.6)' }, grid: { color: 'rgba(0,0,0,.04)' } },
         },
       },

@@ -119,9 +119,12 @@
       </div>
       <!-- 自定义日期范围面板，默认折叠 -->
       <div id="custom-range-panel" class="custom-range-panel hidden">
-        <input type="text" id="chart-date-range" class="date-range-input" placeholder="在同一日历中选起止日期" readonly autocomplete="off" inputmode="none">
-        <input type="hidden" id="chart-date-start">
-        <input type="hidden" id="chart-date-end">
+        <div class="form-row">
+          <span class="form-label">时间范围</span>
+          <input type="text" id="chart-date-range" class="date-range-input" placeholder="请选择日期范围" readonly autocomplete="off" inputmode="none">
+          <input type="hidden" id="chart-date-start">
+          <input type="hidden" id="chart-date-end">
+        </div>
       </div>
 
       <!-- 无数据提示 -->
@@ -152,8 +155,11 @@
             <span class="zl zl-red">2级↑</span>
           </div>
           <p id="chart-hint" class="chart-hint"></p>
-          <div style="position:relative;height:220px">
-            <canvas id="bp-chart"></canvas>
+          <!-- 横向可拖动容器，数据多时防拥挤 -->
+          <div id="chart-scroll-wrap" class="chart-scroll-wrap">
+            <div id="chart-scroll-inner" class="chart-scroll-inner">
+              <canvas id="bp-chart"></canvas>
+            </div>
           </div>
           <div class="chart-legend">
             <button class="l-toggle l-sys"   data-series="sys">● 收缩压</button>

@@ -287,48 +287,53 @@ input::placeholder { color: var(--label3); }
 .seg-btn-custom { font-size: 12px; color: var(--label2); }
 .seg-btn-custom.active { color: var(--label); }
 
-/* 自定义日期范围面板 */
+/* 自定义日期范围面板 - 毛玻璃卡片，与录入页时间行一致 */
 .custom-range-panel {
-  padding: 8px 0 4px;
+  border-radius: var(--r);
+  background: rgba(255,255,255,.82);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: .5px solid rgba(60,60,67,.08);
+  overflow: hidden;
 }
 
-/* ---- 通用日期范围输入框（iOS 搜索栏风格）---- */
+/* 日期范围输入框 - 透明右对齐，与录入页输入框一致 */
 .date-range-input {
-  display: block;
-  width: 100%;
+  flex: 1;
   border: none;
   outline: none;
-  border-radius: 10px;
-  background: rgba(118, 118, 128, .12);
+  background: transparent;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 17px;
   color: var(--label);
-  padding: 8px 12px 8px 34px; /* 左留空给日历图标 */
-  cursor: pointer;
+  text-align: right;
   min-width: 0;
-  /* 日历图标（SF Symbols 替代：用 CSS background-image）*/
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(60,60,67,.45)' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='17' rx='3'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: 10px center;
-  background-size: 16px 16px;
-  transition: background-color .15s;
+  cursor: pointer;
+  padding: 0;
 }
-.date-range-input:focus,
-.date-range-input:active { background-color: rgba(118, 118, 128, .18); }
-/* 有值时文字颜色加深 */
+.date-range-input::placeholder { color: var(--label3); font-size: 15px; }
+/* 有值时用蓝色标记 */
 .date-range-input:not(:placeholder-shown) { color: var(--blue); }
 
-/* 历史记录筛选行 */
+/* 历史记录筛选行 - 毛玻璃卡片，与录入页表单一致 */
 .history-filter {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px 8px;
-  border-bottom: .5px solid var(--sep);
+  padding: 0 16px;
+  min-height: 52px;
+  flex-shrink: 0;
+  border-radius: var(--r);
+  background: rgba(255,255,255,.82);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: .5px solid rgba(60,60,67,.08);
+  overflow: hidden;
 }
 .filter-label {
-  font-size: 13px;
-  color: var(--label3);
+  font-size: 17px;
+  color: var(--label);
+  width: 76px;
   flex-shrink: 0;
 }
 
@@ -377,6 +382,27 @@ input::placeholder { color: var(--label3); }
 .chart-hint {
   font-size: 11px; color: var(--label3);
   margin-bottom: 6px; text-align: center;
+}
+
+/* 趋势图横向滚动容器 */
+.chart-scroll-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(60,60,67,.30) transparent;
+}
+.chart-scroll-wrap::-webkit-scrollbar { height: 3px; }
+.chart-scroll-wrap::-webkit-scrollbar-track { background: transparent; }
+.chart-scroll-wrap::-webkit-scrollbar-thumb {
+  background: rgba(60,60,67,.30);
+  border-radius: 2px;
+}
+/* 图表内容区：宽度由 JS 动态设置 */
+.chart-scroll-inner {
+  position: relative;
+  height: 220px;
+  min-width: 100%;
 }
 
 .chart-legend {
@@ -502,31 +528,28 @@ input::placeholder { color: var(--label3); }
 .history-list-scroll {
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: auto;        /* 块级滚动，避免 flex 子容器撑不开 */
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: var(--label3) transparent;
+  scrollbar-color: rgba(60,60,67,.42) transparent;
+  padding-bottom: 8px;
 }
 .history-list-scroll::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 .history-list-scroll::-webkit-scrollbar-track {
-  background: var(--surface2);
-  border-radius: 4px;
+  background: transparent;
 }
 .history-list-scroll::-webkit-scrollbar-thumb {
-  background: var(--label3);
-  border-radius: 4px;
+  background: rgba(60,60,67,.42);  /* 更高对比度，确保可见 */
+  border-radius: 2px;
 }
 .history-list-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--label2);
+  background: rgba(60,60,67,.65);
 }
 
 .history-list-scroll .empty-state:not(.hidden) {
-  flex: 1;
   min-height: 200px;
   justify-content: center;
 }
@@ -564,15 +587,19 @@ input::placeholder { color: var(--label3); }
 .record-info { flex: 1; min-width: 0; }
 .r-time  { font-size: 13px; color: var(--label2); }
 .r-pulse { font-size: 13px; color: var(--pulse-color); font-weight: 500; }
-/* 备注区容器 */
+/* 备注区容器 - 居中显示 */
 .r-note-area {
   min-height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* 有备注时的静态展示行 */
+/* 有备注时的静态展示行 - 居中 */
 .r-note-static {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 .r-note-text {
@@ -611,9 +638,10 @@ input::placeholder { color: var(--label3); }
 }
 .r-note-add-btn:active { color: var(--blue); }
 
-/* 编辑态输入框（iOS 圆角填充风格）*/
+/* 编辑态输入框（iOS 圆角填充风格）- 全宽居中 */
 .r-note-input {
   width: 100%;
+  align-self: stretch;
   box-sizing: border-box;
   border: none;
   border-radius: 8px;
@@ -942,9 +970,19 @@ span.flatpickr-weekday {
   }
   .flatpickr-day.prevMonthDay,
   .flatpickr-day.nextMonthDay { color: var(--label3); }
-  /* 深色下日历图标改用浅色 */
-  .date-range-input {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(235,235,245,.35)' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='17' rx='3'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+
+  /* 深色下毛玻璃容器 */
+  .custom-range-panel,
+  .history-filter {
+    background: rgba(44,44,46,.85);
+    border-color: rgba(255,255,255,.07);
+  }
+  /* 深色下图表滚动条 */
+  .chart-scroll-wrap::-webkit-scrollbar-thumb {
+    background: rgba(235,235,245,.22);
+  }
+  .history-list-scroll::-webkit-scrollbar-thumb {
+    background: rgba(235,235,245,.30);
   }
 }
 
