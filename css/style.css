@@ -355,7 +355,8 @@ input::placeholder { color: var(--label3); }
 /* =========================================
    图表区域
    ========================================= */
-.chart-wrap { padding: 14px 14px 10px; }
+/* 覆盖 .card 的 overflow:hidden，允许内部横向滚动容器正常工作 */
+.chart-wrap { padding: 14px 14px 10px; overflow: visible; }
 
 .chart-title {
   font-size: 13px; font-weight: 600;

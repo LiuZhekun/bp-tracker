@@ -116,14 +116,18 @@ const Charts = (() => {
     if (trendChart) { trendChart.destroy(); trendChart = null; }
 
     // 动态调整图表宽度：数据点多时横向扩展，防止拥挤
+    // offsetWidth 触发同步重排；首次渲染 chart-section 刚取消 hidden 时可能仍为 0，跳过等 responsive 处理
     const scrollWrap  = document.getElementById('chart-scroll-wrap');
     const scrollInner = document.getElementById('chart-scroll-inner');
     if (scrollWrap && scrollInner) {
-      const containerW = scrollWrap.clientWidth || 280;
-      // 每个数据点最小占用像素：原始点 30px，按天均值 34px
-      const ptW = isRaw ? 30 : 34;
-      const minW = Math.max(containerW, data.labels.length * ptW);
-      scrollInner.style.width = minW + 'px';
+      const containerW = scrollWrap.offsetWidth;
+      if (containerW > 0) {
+        const ptW = isRaw ? 30 : 34;
+        const minW = Math.max(containerW, data.labels.length * ptW);
+        scrollInner.style.width = minW + 'px';
+      } else {
+        scrollInner.style.width = ''; // 宽度未就绪，清空交给 responsive 处理
+      }
     }
 
     // 设置区间阴影数据（供 rangeBandPlugin 使用）
