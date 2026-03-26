@@ -291,7 +291,8 @@ input::placeholder { color: var(--label3); }
 .custom-range-panel {
   border-radius: var(--r);
   background: var(--surface);   /* 与 form-card 一致，对比度足够 */
-  overflow: hidden;
+  /* 允许 flatpickr 日历浮层从面板外“溢出”显示 */
+  overflow: visible;
 }
 
 /* 日期范围输入框 - 透明右对齐，与录入页输入框一致 */

@@ -89,6 +89,8 @@ function createRangePicker(visibleEl, startId, endId, onRangeChange) {
     dateFormat: 'Y-m-d',
     allowInput: false,
     disableMobile: true,
+    // 避免被父容器（例如 overflow: hidden 的面板）裁剪
+    appendTo: document.body,
     onChange(selectedDates) {
       if (!selectedDates.length) {
         startH.value = '';
