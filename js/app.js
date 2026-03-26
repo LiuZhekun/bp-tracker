@@ -8,11 +8,14 @@ let currentRange     = 'week7';
 let pendingDeleteId  = null;
 let recognition      = null;
 let timeUserEdited   = false; // 用户是否手动修改了时间字段
+let fpChartRange = null;
+let fpHistRange  = null;
 
 const $ = id => document.getElementById(id);
 
 // ===== 初始化 =====
 document.addEventListener('DOMContentLoaded', () => {
+  initDateRangePickers();
   // 不预填时间，保持折叠状态，保存时自动取当前时刻
   bindNav();
   bindAdd();
@@ -67,6 +70,62 @@ function collapseTimeInput() {
   if (hint) hint.textContent = '不填则自动记录当前时间 ▸';
 }
 
+function formatYMD(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * 单个 Flatpickr 区间选择器：同步到隐藏域 chart/hist-date-start|end，供现有筛选逻辑使用
+ */
+function createRangePicker(visibleEl, startId, endId, onRangeChange) {
+  const startH = $(startId);
+  const endH = $(endId);
+  const locale = typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.zh
+    ? { locale: flatpickr.l10ns.zh }
+    : {};
+  return flatpickr(visibleEl, {
+    ...locale,
+    mode: 'range',
+    dateFormat: 'Y-m-d',
+    allowInput: false,
+    disableMobile: true,
+    onChange(selectedDates) {
+      if (!selectedDates.length) {
+        startH.value = '';
+        endH.value = '';
+      } else if (selectedDates.length === 1) {
+        const v = formatYMD(selectedDates[0]);
+        startH.value = v;
+        endH.value = v;
+      } else {
+        const t0 = selectedDates[0].getTime();
+        const t1 = selectedDates[1].getTime();
+        const lo = t0 <= t1 ? selectedDates[0] : selectedDates[1];
+        const hi = t0 <= t1 ? selectedDates[1] : selectedDates[0];
+        startH.value = formatYMD(lo);
+        endH.value = formatYMD(hi);
+      }
+      onRangeChange();
+    },
+  });
+}
+
+function initDateRangePickers() {
+  if (typeof flatpickr === 'undefined') return;
+  fpChartRange = createRangePicker(
+    $('chart-date-range'),
+    'chart-date-start',
+    'chart-date-end',
+    () => { if (currentRange === 'custom') renderChart(); }
+  );
+  fpHistRange = createRangePicker(
+    $('hist-date-range'),
+    'hist-date-start',
+    'hist-date-end',
+    renderHistory
+  );
+}
+
 // ===== 导航 =====
 function bindNav() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -106,14 +165,7 @@ function bindAdd() {
       currentRange = btn.dataset.range;
       // 选中"自定义"时展开日期面板，其他时收起
       $('custom-range-panel').classList.toggle('hidden', currentRange !== 'custom');
-      if (currentRange !== 'custom') renderChart();
-    });
-  });
-
-  // 自定义日期变更时刷新图表
-  ['chart-date-start', 'chart-date-end'].forEach(id => {
-    $(id).addEventListener('change', () => {
-      if (currentRange === 'custom') renderChart();
+      renderChart();
     });
   });
 
@@ -293,16 +345,14 @@ function bindHistory() {
   $('import-btn').addEventListener('click', () => $('import-input').click());
   $('import-input').addEventListener('change', onImportCSV);
 
-  // 历史页日期筛选：输入后即时刷新
-  ['hist-date-start', 'hist-date-end'].forEach(id => {
-    $(id).addEventListener('change', renderHistory);
-  });
-
-  // 清除筛选按钮
+  // 清除筛选按钮（Flatpickr 会触发 onChange 并刷新列表）
   $('hist-filter-clear').addEventListener('click', () => {
-    $('hist-date-start').value = '';
-    $('hist-date-end').value   = '';
-    renderHistory();
+    if (fpHistRange) fpHistRange.clear();
+    else {
+      $('hist-date-start').value = '';
+      $('hist-date-end').value = '';
+      renderHistory();
+    }
   });
 }
 
@@ -382,26 +432,95 @@ function renderHistory() {
 
   empty.classList.add('hidden');
   list.innerHTML = records.map(r => {
-    const tag    = bpTag(r.sys, r.dia);
-    const time   = fmtTime(r.time);
-    const pulse  = r.pulse ? `❤️ 心率 ${r.pulse} 次/分` : '';
-    const note   = r.note  ? esc(r.note) : '';
+    const tag     = bpTag(r.sys, r.dia);
+    const time    = fmtTime(r.time);
+    const pulse   = r.pulse ? `❤️ 心率 ${r.pulse} 次/分` : '';
+    const noteVal = escAttr(r.note || '');
+    // 备注区：有备注显示文字+铅笔图标；无备注显示淡色"+ 添加备注"
+    const noteArea = r.note
+      ? `<div class="r-note-static">
+           <span class="r-note-text">${esc(r.note)}</span>
+           <button type="button" class="r-note-edit-btn" aria-label="编辑备注">
+             <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+             </svg>
+           </button>
+         </div>`
+      : `<button type="button" class="r-note-add-btn">＋ 添加备注</button>`;
     return `
-      <div class="record-item">
-        <div class="record-bp">
-          <span class="r-sys">${r.sys}</span>
-          <span class="r-slash">/</span>
-          <span class="r-dia">${r.dia}</span>
+      <div class="record-item" data-id="${r.id}">
+        <div class="record-row-main">
+          <div class="record-bp">
+            <span class="r-sys">${r.sys}</span>
+            <span class="r-slash">/</span>
+            <span class="r-dia">${r.dia}</span>
+          </div>
+          <div class="record-info">
+            <div class="r-time">${time}</div>
+            ${pulse ? `<div class="r-pulse">${pulse}</div>` : ''}
+          </div>
+          <span class="r-tag ${tag.cls}">${tag.label}</span>
+          <button type="button" class="r-del" data-id="${r.id}" aria-label="删除">×</button>
         </div>
-        <div class="record-info">
-          <div class="r-time">${time}</div>
-          ${pulse ? `<div class="r-pulse">${pulse}</div>` : ''}
-          ${note  ? `<div class="r-note">${note}</div>`  : ''}
+        <div class="r-note-area">
+          ${noteArea}
+          <input type="text" class="r-note-input hidden" data-id="${r.id}"
+            value="${noteVal}" placeholder="添加备注…" maxlength="30" autocomplete="off">
         </div>
-        <span class="r-tag ${tag.cls}">${tag.label}</span>
-        <button class="r-del" data-id="${r.id}">×</button>
       </div>`;
   }).join('');
+
+  // 备注区交互：点击"+ 添加备注"或铅笔图标 → 展开输入框
+  list.querySelectorAll('.r-note-area').forEach(area => {
+    const inp      = area.querySelector('.r-note-input');
+    const id       = inp.dataset.id;
+
+    function openEdit() {
+      // 隐藏静态展示，显示输入框并聚焦
+      area.querySelector('.r-note-static, .r-note-add-btn')?.classList.add('hidden');
+      inp.classList.remove('hidden');
+      inp.focus();
+      // 将光标移到文末
+      const len = inp.value.length;
+      inp.setSelectionRange(len, len);
+    }
+
+    function closeEdit() {
+      const val = inp.value.trim();
+      inp.value = val;
+      Storage.updateNote(id, val);
+      inp.classList.add('hidden');
+      // 重建静态区（避免重新渲染整个列表，直接更新 DOM）
+      const old = area.querySelector('.r-note-static, .r-note-add-btn');
+      if (old) old.remove();
+      const frag = document.createElement('div');
+      if (val) {
+        frag.innerHTML = `<div class="r-note-static">
+          <span class="r-note-text">${esc(val)}</span>
+          <button type="button" class="r-note-edit-btn" aria-label="编辑备注">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+        </div>`;
+      } else {
+        frag.innerHTML = `<button type="button" class="r-note-add-btn">＋ 添加备注</button>`;
+      }
+      const newNode = frag.firstElementChild;
+      area.insertBefore(newNode, inp);
+      // 重新绑定新节点的点击事件
+      newNode.addEventListener('click', openEdit);
+    }
+
+    area.querySelector('.r-note-static, .r-note-add-btn')
+        ?.addEventListener('click', openEdit);
+    inp.addEventListener('blur',    closeEdit);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } });
+  });
 
   list.querySelectorAll('.r-del').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -425,6 +544,9 @@ function fmtTime(iso) {
 }
 function p(n) { return String(n).padStart(2, '0'); }
 function esc(s) { return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 // ===== Toast =====
 let _tt = null;

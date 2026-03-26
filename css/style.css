@@ -289,68 +289,66 @@ input::placeholder { color: var(--label3); }
 
 /* 自定义日期范围面板 */
 .custom-range-panel {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 4px 2px;
+  padding: 8px 0 4px;
 }
-.custom-range-panel .date-input {
-  flex: 1;
+
+/* ---- 通用日期范围输入框（iOS 搜索栏风格）---- */
+.date-range-input {
+  display: block;
+  width: 100%;
   border: none;
-  border-bottom: 1px solid var(--sep);
-  background: transparent;
-  font-family: inherit;
-  font-size: 13px;
-  color: var(--label);
-  padding: 4px 2px;
   outline: none;
+  border-radius: 10px;
+  background: rgba(118, 118, 128, .12);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--label);
+  padding: 8px 12px 8px 34px; /* 左留空给日历图标 */
+  cursor: pointer;
   min-width: 0;
+  /* 日历图标（SF Symbols 替代：用 CSS background-image）*/
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(60,60,67,.45)' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='17' rx='3'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+  background-size: 16px 16px;
+  transition: background-color .15s;
 }
-.date-sep {
-  font-size: 13px;
-  color: var(--label3);
-  flex-shrink: 0;
-}
+.date-range-input:focus,
+.date-range-input:active { background-color: rgba(118, 118, 128, .18); }
+/* 有值时文字颜色加深 */
+.date-range-input:not(:placeholder-shown) { color: var(--blue); }
 
 /* 历史记录筛选行 */
 .history-filter {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px 8px;
+  padding: 8px 16px 8px;
   border-bottom: .5px solid var(--sep);
-  margin-bottom: 4px;
 }
 .filter-label {
   font-size: 13px;
   color: var(--label3);
   flex-shrink: 0;
 }
-.history-filter .date-input {
-  flex: 1;
-  border: none;
-  border-bottom: 1px solid var(--sep);
-  background: transparent;
-  font-family: inherit;
-  font-size: 13px;
-  color: var(--label);
-  padding: 3px 2px;
-  outline: none;
-  min-width: 0;
-}
-/* 清除筛选按钮 */
+
+/* 清除筛选按钮（iOS 叉号胶囊风格）*/
 .filter-clear {
   border: none;
-  background: rgba(118,118,128,.15);
+  background: rgba(118, 118, 128, .2);
   color: var(--label2);
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 600;
   border-radius: 50%;
-  width: 22px; height: 22px;
+  width: 20px; height: 20px;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
   padding: 0;
+  transition: background .15s;
+  line-height: 1;
 }
+.filter-clear:active { background: rgba(118, 118, 128, .35); }
 
 /* =========================================
    图表区域
@@ -494,6 +492,45 @@ input::placeholder { color: var(--label3); }
 /* =========================================
    历史记录
    ========================================= */
+.history-page-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.history-list-scroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--label3) transparent;
+}
+.history-list-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.history-list-scroll::-webkit-scrollbar-track {
+  background: var(--surface2);
+  border-radius: 4px;
+}
+.history-list-scroll::-webkit-scrollbar-thumb {
+  background: var(--label3);
+  border-radius: 4px;
+}
+.history-list-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--label2);
+}
+
+.history-list-scroll .empty-state:not(.hidden) {
+  flex: 1;
+  min-height: 200px;
+  justify-content: center;
+}
+
 #record-list {
   background: var(--surface);
   border-radius: var(--r);
@@ -501,11 +538,20 @@ input::placeholder { color: var(--label3); }
 }
 
 .record-item {
-  display: flex; align-items: center;
-  gap: 10px; padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 12px 16px;
   border-bottom: .5px solid var(--sep);
 }
 .record-item:last-child { border-bottom: none; }
+
+.record-row-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .record-bp {
   display: flex; align-items: baseline;
@@ -518,7 +564,73 @@ input::placeholder { color: var(--label3); }
 .record-info { flex: 1; min-width: 0; }
 .r-time  { font-size: 13px; color: var(--label2); }
 .r-pulse { font-size: 13px; color: var(--pulse-color); font-weight: 500; }
-.r-note  { font-size: 12px; color: var(--label2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 备注区容器 */
+.r-note-area {
+  min-height: 24px;
+}
+
+/* 有备注时的静态展示行 */
+.r-note-static {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.r-note-text {
+  font-size: 13px;
+  color: var(--label2);
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
+}
+/* 铅笔编辑按钮 */
+.r-note-edit-btn {
+  border: none;
+  background: transparent;
+  color: var(--label3);
+  padding: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  transition: color .15s;
+}
+.r-note-edit-btn:active { color: var(--blue); }
+
+/* 无备注时的"+ 添加备注"按钮 */
+.r-note-add-btn {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--label3);
+  padding: 0;
+  cursor: pointer;
+  letter-spacing: .1px;
+  transition: color .15s;
+}
+.r-note-add-btn:active { color: var(--blue); }
+
+/* 编辑态输入框（iOS 圆角填充风格）*/
+.r-note-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 8px;
+  background: rgba(118, 118, 128, .10);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--label);
+  padding: 7px 10px;
+  outline: none;
+  transition: background .15s;
+}
+.r-note-input::placeholder { color: var(--label3); }
+.r-note-input:focus {
+  background: rgba(118, 118, 128, .16);
+  /* 微妙的蓝色焦点环，比 border 更轻盈 */
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, .25);
+}
 
 .r-tag {
   font-size: 11px; font-weight: 700;
@@ -629,6 +741,211 @@ input::placeholder { color: var(--label3); }
   border: none; background: transparent;
   color: var(--blue); font-family: inherit;
   font-size: 17px; padding: 18px; cursor: pointer;
+}
+
+/* =========================================
+   Flatpickr — iOS 原生日历风格
+   ========================================= */
+
+/* 弹窗容器 */
+.flatpickr-calendar {
+  font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0,0,0,.04),
+              0 12px 32px rgba(0,0,0,.14),
+              0 0 0 .5px rgba(0,0,0,.08);
+  padding: 0 0 8px;
+  z-index: 400;
+  overflow: hidden;
+  width: 308px !important; /* 固定宽度，日期格均匀 */
+}
+/* 隐藏默认阴影伪元素 */
+.flatpickr-calendar::before,
+.flatpickr-calendar::after { display: none; }
+
+/* 月份导航栏 */
+.flatpickr-months {
+  padding: 12px 8px 6px;
+  align-items: center;
+}
+.flatpickr-months .flatpickr-month {
+  height: 36px;
+  line-height: 36px;
+}
+
+/* 月份文字 + 年份输入 */
+.flatpickr-current-month {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0;
+  top: 0;
+  height: 36px;
+  line-height: 36px;
+  color: var(--label);
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--label);
+  background: transparent;
+  padding: 0;
+  -webkit-appearance: none;
+}
+.flatpickr-current-month input.cur-year {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--label);
+  padding: 0;
+}
+
+/* 上一月 / 下一月 箭头 */
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  top: 12px;
+  padding: 4px 10px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flatpickr-prev-month svg,
+.flatpickr-next-month svg {
+  width: 9px; height: 14px;
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover { opacity: .7; }
+
+/* 星期行 */
+.flatpickr-weekdays {
+  padding: 0 8px;
+  margin-bottom: 2px;
+}
+span.flatpickr-weekday {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--label2);
+  letter-spacing: .2px;
+}
+
+/* 日期格 */
+.flatpickr-days { padding: 0 8px 0; }
+.dayContainer { padding: 0; gap: 0; }
+
+.flatpickr-day {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--label);
+  border-radius: 50%;
+  height: 38px;
+  line-height: 38px;
+  max-width: 38px;
+  border: none;
+  transition: background .12s, color .12s;
+}
+/* 悬停 */
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+  background: rgba(118, 118, 128, .12);
+  border: none;
+  color: var(--label);
+}
+
+/* 今天 */
+.flatpickr-day.today {
+  font-weight: 700;
+  color: var(--blue);
+  border: none;
+}
+.flatpickr-day.today:hover { color: var(--blue); }
+
+/* 选中端点（startRange / endRange / single selected）*/
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+  background: var(--blue);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 50%;
+  /* 区间两端胶囊过渡：左端右半填充，右端左半填充 */
+}
+/* 区间起点右侧背景过渡 */
+.flatpickr-day.startRange:not(.endRange) {
+  border-radius: 50% 0 0 50%;
+}
+/* 区间终点左侧背景过渡 */
+.flatpickr-day.endRange:not(.startRange) {
+  border-radius: 0 50% 50% 0;
+}
+
+/* 区间中间填充 */
+.flatpickr-day.inRange {
+  background: rgba(0, 122, 255, .10);
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  color: var(--label);
+}
+
+/* 当月之外的日期 */
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  color: var(--label3);
+}
+.flatpickr-day.flatpickr-disabled {
+  color: var(--label3);
+  opacity: .5;
+}
+
+/* ---- 深色模式 ---- */
+@media (prefers-color-scheme: dark) {
+  .flatpickr-calendar {
+    background: var(--surface);
+    box-shadow: 0 4px 6px rgba(0,0,0,.12),
+                0 16px 40px rgba(0,0,0,.45),
+                0 0 0 .5px rgba(255,255,255,.06);
+  }
+  .flatpickr-current-month,
+  .flatpickr-current-month .flatpickr-monthDropdown-months,
+  .flatpickr-current-month input.cur-year {
+    color: var(--label);
+  }
+  .flatpickr-weekdays { background: transparent; }
+  span.flatpickr-weekday { color: var(--label2); }
+  .flatpickr-day { color: var(--label); }
+  .flatpickr-day:hover,
+  .flatpickr-day:focus {
+    background: rgba(255,255,255,.08);
+    color: var(--label);
+  }
+  .flatpickr-day.today { color: #0A84FF; }
+  .flatpickr-day.selected,
+  .flatpickr-day.startRange,
+  .flatpickr-day.endRange,
+  .flatpickr-day.selected:hover,
+  .flatpickr-day.startRange:hover,
+  .flatpickr-day.endRange:hover {
+    background: #0A84FF;
+  }
+  .flatpickr-day.inRange {
+    background: rgba(10, 132, 255, .18);
+    color: var(--label);
+  }
+  .flatpickr-day.prevMonthDay,
+  .flatpickr-day.nextMonthDay { color: var(--label3); }
+  /* 深色下日历图标改用浅色 */
+  .date-range-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(235,235,245,.35)' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='17' rx='3'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+  }
 }
 
 .hidden { display: none !important; }

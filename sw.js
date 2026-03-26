@@ -3,7 +3,7 @@
  */
 
 // 缓存版本号，修改代码后递增此值可强制更新缓存
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.0.1';
 const CACHE_NAME = `bp-tracker-${CACHE_VERSION}`;
 
 // 预缓存的本地资源（首次 install 时一次性下载并缓存）
@@ -20,8 +20,12 @@ const PRECACHE_ASSETS = [
 ];
 
 // 预缓存的 CDN 资源（首次 install 时也一并下载，确保离线可用）
+// 须与 index.html 中引用的 URL 版本保持一致
 const PRECACHE_CDN = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css',
+  'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js',
+  'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/zh.js',
 ];
 
 // 需要运行时缓存的 CDN 域名

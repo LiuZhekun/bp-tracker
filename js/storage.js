@@ -31,6 +31,16 @@ const Storage = (() => {
     localStorage.setItem(KEY, JSON.stringify(getAll().filter(r => r.id !== id)));
   }
 
+  /** 更新单条备注（与录入页一致最多 30 字） */
+  function updateNote(id, note) {
+    const records = getAll();
+    const i = records.findIndex(r => r.id === id);
+    if (i === -1) return false;
+    records[i] = { ...records[i], note: String(note || '').trim().slice(0, 30) };
+    localStorage.setItem(KEY, JSON.stringify(records));
+    return true;
+  }
+
   /**
    * 按时间范围筛选
    * range: 'week7' | 'month30' | 'month90' | 'all'
@@ -155,13 +165,24 @@ const Storage = (() => {
     return true;
   }
 
+  /** 将 date input 的 YYYY-MM-DD 转为当天本地 0 点（避免 new Date('YYYY-MM-DD') 按 UTC 解析导致偏一天） */
+  function localDayStart(ymd) {
+    const [y, m, d] = ymd.split('-').map(Number);
+    return new Date(y, m - 1, d, 0, 0, 0, 0);
+  }
+
+  function localDayEnd(ymd) {
+    const [y, m, d] = ymd.split('-').map(Number);
+    return new Date(y, m - 1, d, 23, 59, 59, 999);
+  }
+
   /**
    * 按自定义起止日期筛选（start/end 为 'YYYY-MM-DD' 字符串，可为空）
    */
   function getByDateRange(start, end) {
     const all = getAll();
-    const s = start ? new Date(start) : null;
-    const e = end   ? new Date(end + 'T23:59:59') : null; // 包含结束当天全天
+    const s = start ? localDayStart(start) : null;
+    const e = end   ? localDayEnd(end)     : null;
     return all.filter(r => {
       const t = new Date(r.time);
       if (s && t < s) return false;
@@ -170,5 +191,5 @@ const Storage = (() => {
     });
   }
 
-  return { getAll, save, remove, getByRange, getByDateRange, calcStats, calcDistribution, exportCSV, importRecords };
+  return { getAll, save, remove, updateNote, getByRange, getByDateRange, calcStats, calcDistribution, exportCSV, importRecords };
 })();
