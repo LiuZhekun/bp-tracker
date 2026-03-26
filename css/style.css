@@ -287,13 +287,10 @@ input::placeholder { color: var(--label3); }
 .seg-btn-custom { font-size: 12px; color: var(--label2); }
 .seg-btn-custom.active { color: var(--label); }
 
-/* 自定义日期范围面板 - 毛玻璃卡片，与录入页时间行一致 */
+/* 自定义日期范围面板 - 与其他卡片一致，实色白背景确保可见 */
 .custom-range-panel {
   border-radius: var(--r);
-  background: rgba(255,255,255,.82);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
-  border: .5px solid rgba(60,60,67,.08);
+  background: var(--surface);   /* 与 form-card 一致，对比度足够 */
   overflow: hidden;
 }
 
@@ -311,7 +308,7 @@ input::placeholder { color: var(--label3); }
   cursor: pointer;
   padding: 0;
 }
-.date-range-input::placeholder { color: var(--label3); font-size: 15px; }
+.date-range-input::placeholder { color: var(--label2); font-size: 15px; }
 /* 有值时用蓝色标记 */
 .date-range-input:not(:placeholder-shown) { color: var(--blue); }
 
@@ -971,8 +968,7 @@ span.flatpickr-weekday {
   .flatpickr-day.prevMonthDay,
   .flatpickr-day.nextMonthDay { color: var(--label3); }
 
-  /* 深色下毛玻璃容器 */
-  .custom-range-panel,
+  /* 深色下历史筛选毛玻璃 */
   .history-filter {
     background: rgba(44,44,46,.85);
     border-color: rgba(255,255,255,.07);
