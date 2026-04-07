@@ -2,6 +2,8 @@
  * 血压数据本地存储 + 统计计算（由 js/storage.js 迁移）
  */
 
+import { classifyBpDistribution } from '../utils/bp'
+
 export type BpRecord = {
   id: string
   time: string
@@ -157,8 +159,11 @@ function calcStats(records: BpRecord[]): CalcStats | null {
   const avgSys = avg(sysList)
   const avgDia = avg(diaList)
 
-  const targetCount = records.filter((r) => r.sys < 135 && r.dia < 85).length
-  const highCount = records.filter((r) => r.sys >= 140 || r.dia >= 90).length
+  const targetCount = records.filter((r) => classifyBpDistribution(r.sys, r.dia) === 'normal').length
+  const highCount = records.filter((r) => {
+    const b = classifyBpDistribution(r.sys, r.dia)
+    return b === 'high1' || b === 'high2'
+  }).length
 
   return {
     count: records.length,
@@ -184,11 +189,7 @@ export type Distribution = {
 function calcDistribution(records: BpRecord[]): Distribution {
   const dist: Distribution = { low: 0, normal: 0, elevated: 0, high1: 0, high2: 0 }
   records.forEach((r) => {
-    if (r.sys < 90 || r.dia < 60) dist.low++
-    else if (r.sys < 130 && r.dia < 85) dist.normal++
-    else if (r.sys < 140 && r.dia < 90) dist.elevated++
-    else if (r.sys < 160 && r.dia < 100) dist.high1++
-    else dist.high2++
+    dist[classifyBpDistribution(r.sys, r.dia)]++
   })
   return dist
 }

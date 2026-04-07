@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { mountTrendChart, rangeTitle, type ChartRangeUi, type TrendChartApi } from '../../lib/trendChartEngine'
 import { Storage, type BpRecord, type RangeKey } from '../../lib/storage'
-import { bpLevel } from '../../utils/bp'
+import { BP_DIST_UI_ORDER, bpLevel } from '../../utils/bp'
 import { RangeDateInput } from '../../components/RangeDateInput'
 
 type Props = {
@@ -122,6 +122,16 @@ export function ChartPage({ refreshTick }: Props) {
     return '规律测量能帮助医生更了解您的血压变化。'
   }, [stats])
 
+  const distItems = useMemo(() => {
+    if (!dist || !records.length) return []
+    const total = records.length
+    return BP_DIST_UI_ORDER.map((def) => ({
+      ...def,
+      count: dist[def.key],
+      pct: Math.round((dist[def.key] / total) * 100),
+    }))
+  }, [dist, records.length])
+
   const toggleLegend = (name: 'sys' | 'dia' | 'pulse') => {
     const api = chartApiRef.current
     if (!api) return
@@ -138,39 +148,11 @@ export function ChartPage({ refreshTick }: Props) {
       </div>
 
       <div id="chart-dashboard" className={'trend-dashboard' + (hasData ? '' : ' hidden')}>
-        <div className="trend-range-wrap card card--inset" id="trend-range-control">
-          <div className="range-pill-group" role="tablist" aria-label="周期选择">
-            {(['week7', 'month30', 'month90', 'all', 'custom'] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                className={'range-pill' + (currentRange === r ? ' active' : '')}
-                onClick={() => setCurrentRange(r)}
-              >
-                {r === 'week7' ? '近7天' : r === 'month30' ? '近30天' : r === 'month90' ? '近90天' : r === 'all' ? '全部' : '自定义'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div id="custom-range-panel" className={'custom-range-panel card' + (currentRange === 'custom' ? '' : ' hidden')}>
-          <div className="form-row">
-            <span className="form-label">时间范围</span>
-            <RangeDateInput placeholder="请选择起止日期" onRangeChange={onChartRangeChange} className="date-range-input" />
-          </div>
-        </div>
-
-        <div className="trend-page-head trend-page-head--intro">
+        <header className="trend-page-head trend-page-head--hero">
           <div className="trend-page-head__left">
-            <span className="trend-page-head__eyebrow">趋势分析</span>
-            <h2 className="trend-page-head__title">每周趋势</h2>
-          </div>
-        </div>
-        <header className="trend-page-head">
-          <div className="trend-page-head__left">
-            <span className="trend-page-head__eyebrow">数据洞察</span>
-            <h2 id="chart-period-title" className="trend-page-head__title">
-              {rangeTitle(rangeUi)}
-            </h2>
+            <span className="trend-page-head__eyebrow">分析</span>
+            <h2 className="trend-page-head__title">统计趋势</h2>
+            <p id="chart-period-title" className="trend-page-head__sub">{rangeTitle(rangeUi)}</p>
           </div>
           <div
             id="chart-status-pill"
@@ -192,6 +174,27 @@ export function ChartPage({ refreshTick }: Props) {
             ) : null}
           </div>
         </header>
+
+        <div className="trend-range-wrap card card--inset" id="trend-range-control">
+          <div className="range-pill-group" role="tablist" aria-label="周期选择">
+            {(['week7', 'month30', 'month90', 'all', 'custom'] as const).map((r) => (
+              <button
+                key={r}
+                type="button"
+                className={'range-pill' + (currentRange === r ? ' active' : '')}
+                onClick={() => setCurrentRange(r)}
+              >
+                {r === 'week7' ? '近7天' : r === 'month30' ? '近30天' : r === 'month90' ? '近90天' : r === 'all' ? '全部' : '自定义'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div id="custom-range-panel" className={'custom-range-panel card' + (currentRange === 'custom' ? '' : ' hidden')}>
+          <div className="form-row">
+            <span className="form-label">时间范围</span>
+            <RangeDateInput placeholder="请选择起止日期" onRangeChange={onChartRangeChange} className="date-range-input" />
+          </div>
+        </div>
 
         <div id="chart-section">
           <div className="card card--elevated trend-chart-card">
@@ -289,31 +292,32 @@ export function ChartPage({ refreshTick }: Props) {
             </div>
             <div className="card card--elevated trend-dist-card">
               <p className="trend-dist-card__title">血压分布</p>
-              <div id="dist-bars" className="dist-bars">
-                {dist && records.length
-                  ? [
-                      { label: '正常', count: dist.normal, cls: 'dist-green' },
-                      { label: '正常高值', count: dist.elevated, cls: 'dist-yellow' },
-                      { label: '1级高血压', count: dist.high1, cls: 'dist-orange' },
-                      { label: '2级以上', count: dist.high2, cls: 'dist-red' },
-                      { label: '偏低', count: dist.low, cls: 'dist-blue' },
-                    ]
-                      .filter((r) => r.count > 0)
-                      .map((r) => {
-                        const pct = Math.round((r.count / records.length) * 100)
-                        return (
-                          <div key={r.label} className="dist-row">
-                            <span className="dist-label">{r.label}</span>
-                            <div className="dist-bar-wrap">
-                              <div className={`dist-bar ${r.cls}`} style={{ width: `${Math.max(pct, 4)}%` }}></div>
-                            </div>
-                            <span className="dist-val">
-                              {r.count}次 <em>{pct}%</em>
-                            </span>
-                          </div>
-                        )
-                      })
-                  : null}
+              <div className="trend-dist-stack" aria-hidden="true">
+                {distItems
+                  .filter((item) => item.count > 0)
+                  .map((item) => (
+                    <span
+                      key={item.key}
+                      className={`trend-dist-stack__seg ${item.cls}`}
+                      style={{ width: `${Math.max(item.pct, 6)}%` }}
+                    ></span>
+                  ))}
+              </div>
+              <div id="dist-bars" className="trend-dist-legend">
+                {distItems
+                  .filter((item) => item.count > 0)
+                  .map((item) => (
+                    <div key={item.key} className="trend-dist-legend__row">
+                      <div className="trend-dist-legend__left">
+                        <i className={`trend-dist-legend__dot ${item.cls}`}></i>
+                        <span className="trend-dist-legend__label">{item.label}</span>
+                      </div>
+                      <div className="trend-dist-legend__right">
+                        <span className="trend-dist-legend__main">{item.count}次 ({item.pct}%)</span>
+                        <span className="trend-dist-legend__sub">{item.sub}</span>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>

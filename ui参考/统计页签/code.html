@@ -7,7 +7,6 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -88,11 +87,11 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 <style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-  </head>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
 <body class="bg-surface text-on-surface min-h-screen pb-32">
 <!-- TopAppBar -->
 <header class="fixed top-0 w-full z-50 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-6 h-16 w-full">
@@ -106,7 +105,7 @@
 <img alt="User" data-alt="Close-up portrait of a smiling elderly man with kind eyes and grey hair, soft studio lighting, high resolution photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDDzpe5APCFXfvDVMRTPibykcy-f_GaO8X9HAClKebHm_JCIznfsjpY3WSWADCGI69ljRUnIIcJQHxhqcVx9PzH33hGWtURUpr4UQyhV90A2dOx7fmIwE6stj0R1IrQgAiuyGLr16VcZjlHfSdbbYcpIChZfL0NqgU-OUTWo6n0K1o-yksI1xCiUEz1P8LaPoTs75PVrp7Aft5LjwWQk8TjcDUzaODnXyB0QHbKRpzZ5smkv_z55pi4AGce1gBNNvF1rXzk4UWaGs"/>
 </div>
 </header>
-<main class="pt-20 px-4 max-w-2xl mx-auto space-y-6">
+<main class="pt-20 px-4 max-w-2xl mx-auto space-y-5">
 <!-- Header Content: Editorial Title & Quick Status -->
 <section class="mt-4 flex flex-col gap-1">
 <div class="flex items-end justify-between px-2">
@@ -120,6 +119,20 @@
 </div>
 </div>
 </section>
+<!-- Period Selector: Elderly-Friendly Segmented Control -->
+<div class="px-2">
+<div class="bg-surface-container rounded-2xl p-1.5 flex gap-1 shadow-sm">
+<button class="flex-1 py-3 px-2 rounded-xl text-sm font-headline font-bold transition-all bg-primary text-on-primary shadow-md">
+                    Last 7 Days
+                </button>
+<button class="flex-1 py-3 px-2 rounded-xl text-sm font-headline font-semibold transition-all text-on-surface-variant hover:bg-surface-container-high">
+                    Last 30 Days
+                </button>
+<button class="flex-1 py-3 px-2 rounded-xl text-sm font-headline font-semibold transition-all text-on-surface-variant hover:bg-surface-container-high">
+                    Custom
+                </button>
+</div>
+</div>
 <!-- Interactive Weekly Chart: Bento Card -->
 <div class="bg-surface-container-lowest rounded-xl p-6 shadow-none flex flex-col gap-4">
 <div class="flex justify-between items-center">
