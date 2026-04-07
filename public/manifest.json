@@ -1,7 +1,7 @@
 {
   "name": "血压记录",
   "short_name": "血压",
-  "description": "记录每次血压数据，支持拍照识别，生成趋势图表",
+  "description": "记录每次血压数据，支持语音与手动录入，生成趋势图表",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -14,16 +14,6 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
     }
   ]
 }

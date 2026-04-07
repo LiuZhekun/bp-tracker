@@ -1,247 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="血压记录">
-  <link rel="apple-touch-icon" href="icons/icon.svg">
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
-  <title>血压记录</title>
-</head>
-<body>
-
-  <!-- ===== 视图1：录入 ===== -->
-  <div id="view-add" class="view active">
-    <header class="page-header">
-      <h1>血压记录</h1>
-    </header>
-    <main class="page-main">
-
-      <!-- 语音输入卡片 -->
-      <div class="card voice-card">
-        <!-- 待机状态：麦克风按钮 -->
-        <div id="voice-idle" class="voice-idle">
-          <button id="voice-btn" class="mic-btn">
-            <span class="mic-icon">🎤</span>
-          </button>
-          <p class="voice-desc">点击说出血压数值</p>
-          <p class="voice-example">例：高压130 低压85 心率72</p>
-        </div>
-
-        <!-- 录音中状态 -->
-        <div id="voice-recording" class="voice-recording hidden">
-          <div class="voice-wave">
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-          <p class="recording-label">正在听...</p>
-          <p id="voice-interim" class="voice-interim"></p>
-          <button id="voice-stop-btn" class="stop-btn">停止</button>
-        </div>
-      </div>
-
-      <!-- 数据表单 -->
-      <div class="form-card card">
-
-        <div class="form-row">
-          <span class="form-label">收缩压</span>
-          <div class="form-value">
-            <input type="number" id="input-sys" min="60" max="260"
-                   placeholder="—" inputmode="numeric">
-            <span class="form-unit">mmHg</span>
-          </div>
-        </div>
-        <div class="row-sep"></div>
-
-        <div class="form-row">
-          <span class="form-label">舒张压</span>
-          <div class="form-value">
-            <input type="number" id="input-dia" min="40" max="150"
-                   placeholder="—" inputmode="numeric">
-            <span class="form-unit">mmHg</span>
-          </div>
-        </div>
-        <div class="row-sep"></div>
-
-        <div class="form-row">
-          <span class="form-label">心率</span>
-          <div class="form-value">
-            <input type="number" id="input-pulse" min="30" max="220"
-                   placeholder="—" inputmode="numeric">
-            <span class="form-unit">次/分</span>
-          </div>
-        </div>
-        <div class="row-sep"></div>
-
-        <!-- 时间行：默认折叠，展开后才显示 datetime-local 输入框 -->
-        <div class="form-row time-toggle-row" id="time-toggle-row" onclick="toggleTimeInput()">
-          <span class="form-label">时间</span>
-          <span class="form-time-hint">不填则自动记录当前时间 ▸</span>
-        </div>
-        <div id="time-input-wrap" class="time-input-wrap hidden">
-          <div class="form-row">
-            <span class="form-label">选择时间</span>
-            <input type="datetime-local" id="input-time" class="form-input-right">
-          </div>
-        </div>
-        <div class="row-sep"></div>
-
-        <div class="form-row">
-          <span class="form-label">备注</span>
-          <input type="text" id="input-note" class="form-input-right"
-                 placeholder="可选" maxlength="30">
-        </div>
-
-      </div>
-
-      <button id="save-btn" class="save-btn">保存</button>
-
-    </main>
-  </div>
-
-  <!-- ===== 视图2：图表 ===== -->
-  <div id="view-chart" class="view">
-    <header class="page-header">
-      <h1>健康统计</h1>
-    </header>
-    <main class="page-main">
-
-      <!-- 时间范围 -->
-      <div class="seg-control">
-        <button class="seg-btn active" data-range="week7">近7天</button>
-        <button class="seg-btn" data-range="month30">近30天</button>
-        <button class="seg-btn" data-range="month90">近3月</button>
-        <button class="seg-btn" data-range="all">全部</button>
-        <button class="seg-btn seg-btn-custom" data-range="custom">自定义</button>
-      </div>
-      <!-- 自定义日期范围面板，默认折叠 -->
-      <div id="custom-range-panel" class="custom-range-panel hidden">
-        <div class="form-row">
-          <span class="form-label">时间范围</span>
-          <input type="text" id="chart-date-range" class="date-range-input" placeholder="请选择日期范围" readonly autocomplete="off" inputmode="none">
-          <input type="hidden" id="chart-date-start">
-          <input type="hidden" id="chart-date-end">
-        </div>
-      </div>
-
-      <!-- 无数据提示 -->
-      <div id="no-data-chart" class="empty-state hidden">
-        <p>📊</p><p>暂无数据</p>
-        <p class="empty-sub">请先在录入页添加记录</p>
-      </div>
-
-      <!-- 有数据时显示 -->
-      <div id="stats-section" class="hidden">
-        <!-- 4张统计卡片（横向滚动）-->
-        <div class="stats-scroll">
-          <div class="stat-card" id="stat-avg"></div>
-          <div class="stat-card" id="stat-target"></div>
-          <div class="stat-card" id="stat-peak"></div>
-          <div class="stat-card" id="stat-pp"></div>
-        </div>
-      </div>
-
-      <div id="chart-section" class="hidden">
-        <!-- 趋势折线图（带色带）-->
-        <div class="card chart-wrap">
-          <p class="chart-title">血压趋势</p>
-          <div class="chart-zone-legend">
-            <span class="zl zl-green">正常</span>
-            <span class="zl zl-yellow">正常高值</span>
-            <span class="zl zl-orange">1级</span>
-            <span class="zl zl-red">2级↑</span>
-          </div>
-          <p id="chart-hint" class="chart-hint"></p>
-          <!-- 横向可拖动容器，数据多时防拥挤 -->
-          <div id="chart-scroll-wrap" class="chart-scroll-wrap">
-            <div id="chart-scroll-inner" class="chart-scroll-inner">
-              <canvas id="bp-chart"></canvas>
-            </div>
-          </div>
-          <div class="chart-legend">
-            <button class="l-toggle l-sys"   data-series="sys">● 收缩压</button>
-            <button class="l-toggle l-dia"   data-series="dia">● 舒张压</button>
-            <button class="l-toggle l-pulse" data-series="pulse">● 心率</button>
-          </div>
-        </div>
-
-        <!-- 血压分布 -->
-        <div class="card dist-card">
-          <p class="chart-title">血压分布</p>
-          <div id="dist-bars" class="dist-bars"></div>
-        </div>
-      </div>
-
-    </main>
-  </div>
-
-  <!-- ===== 视图3：历史 ===== -->
-  <div id="view-history" class="view">
-    <header class="page-header">
-      <h1>历史记录</h1>
-      <div class="header-actions">
-        <input type="file" id="import-input" accept=".csv" style="display:none">
-        <button id="import-btn" class="header-action">导入</button>
-        <button id="export-btn" class="header-action">导出</button>
-      </div>
-    </header>
-    <main class="page-main history-page-main">
-      <!-- 历史记录日期筛选行 -->
-      <div class="history-filter">
-        <span class="filter-label">时间</span>
-        <input type="text" id="hist-date-range" class="date-range-input" placeholder="在同一日历中选起止日期" readonly autocomplete="off" inputmode="none">
-        <input type="hidden" id="hist-date-start">
-        <input type="hidden" id="hist-date-end">
-        <button id="hist-filter-clear" class="filter-clear hidden">✕</button>
-      </div>
-      <div class="history-list-scroll">
-        <div id="record-list"></div>
-        <div id="no-data-history" class="empty-state hidden">
-          <p>📋</p>
-          <p>暂无记录</p>
-          <p class="empty-sub">请先在录入页添加记录</p>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- ===== Tab 导航 ===== -->
-  <nav class="tab-bar">
-    <button class="tab-btn active" data-view="add">
-      <span class="tab-icon">＋</span>
-      <span class="tab-label">录入</span>
-    </button>
-    <button class="tab-btn" data-view="chart">
-      <span class="tab-icon">📈</span>
-      <span class="tab-label">图表</span>
-    </button>
-    <button class="tab-btn" data-view="history">
-      <span class="tab-icon">📋</span>
-      <span class="tab-label">历史</span>
-    </button>
-  </nav>
-
-  <!-- Toast -->
-  <div id="toast" class="toast hidden"></div>
-
-  <!-- 删除确认 -->
-  <div id="confirm-modal" class="modal-overlay hidden">
-    <div class="modal-sheet">
-      <p class="modal-msg">确认删除这条记录？</p>
-      <button id="confirm-ok" class="modal-del-btn">删除</button>
-      <button id="confirm-cancel" class="modal-cancel-btn">取消</button>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/zh.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/charts.js"></script>
-  <script src="js/app.js"></script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#E53E3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="血压记录" />
+    <link rel="apple-touch-icon" href="/icons/icon.svg" />
+    <title>血压记录</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

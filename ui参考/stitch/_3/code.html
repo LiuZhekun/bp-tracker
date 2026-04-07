@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Health History Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#88d982",
+                        "on-surface": "#191c1e",
+                        "surface-container-high": "#e6e8eb",
+                        "on-error": "#ffffff",
+                        "surface": "#f7f9fc",
+                        "surface-container-low": "#f2f4f7",
+                        "tertiary-container": "#da3433",
+                        "on-primary-fixed-variant": "#004493",
+                        "on-background": "#191c1e",
+                        "secondary": "#1b6d24",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#410003",
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "inverse-primary": "#adc6ff",
+                        "inverse-on-surface": "#eff1f4",
+                        "surface-dim": "#d8dadd",
+                        "surface-variant": "#e0e3e6",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#001a41",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#b6171e",
+                        "surface-container": "#eceef1",
+                        "tertiary-fixed": "#ffdad6",
+                        "outline-variant": "#c1c6d7",
+                        "on-surface-variant": "#414755",
+                        "inverse-surface": "#2d3133",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#fffbff",
+                        "secondary-container": "#a0f399",
+                        "surface-tint": "#005bc1",
+                        "outline": "#717786",
+                        "surface-bright": "#f7f9fc",
+                        "on-secondary-fixed-variant": "#005312",
+                        "surface-container-highest": "#e0e3e6",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#a3f69c",
+                        "on-tertiary-fixed-variant": "#930010",
+                        "on-secondary-container": "#217128",
+                        "primary": "#0058bc",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f7f9fc",
+                        "on-secondary-fixed": "#002204",
+                        "primary-container": "#0070eb",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-container": "#fefcff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Lexend"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, .font-lexend { font-family: 'Lexend', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .rhythmic-expansion:active { transform: scale(0.95); transition: transform 0.3s ease; }
+        .no-line { border: none !important; }
+        .tonal-shift { transition: background-color 0.3s ease; }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full no-line tonal-shift bg-surface-container-low dark:bg-slate-800">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed flex items-center justify-center">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a smiling senior man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ4F8VOHj5HYnwR0FYZD4vHs0PQJkFOXkmJOJcdtqx74c7-uEk1MOLm1_tSVZu-d5jb1IfBZogeQzXHf-B0SKi0QycuIhCSzGVQkfWN7ZHGHm_rMPiNwIWsCULQegJXFhpDaXwJdWMJuhnQGbpvSE7J4qwCh1e2yltRkMk6u5w9z5B19kGcWIe0Eu1eOQ9vXwoc-IObDw9k8sh2_FkVzUoT0fNlt-5ECSljsqi_YPkujM-S4727qO6IH11oSvMdcKbMJ3Hu7ZGDdU"/>
+</div>
+<h1 class="font-lexend font-bold text-xl tracking-tight text-blue-700 dark:text-blue-400">The Empathetic Guardian</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="pt-24 px-4 max-w-4xl mx-auto">
+<!-- Action Header -->
+<div class="flex items-end justify-between mb-6">
+<div>
+<h2 class="text-2xl font-headline font-extrabold tracking-tight mb-1">History</h2>
+<p class="text-on-surface-variant font-body text-sm">Past recordings</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center justify-center gap-2 h-10 px-4 bg-primary text-on-primary rounded-full font-headline font-semibold text-sm shadow-md rhythmic-expansion">
+<span class="material-symbols-outlined text-lg" data-icon="ios_share">ios_share</span>
+                Export
+            </button>
+<button class="flex items-center justify-center h-10 w-10 bg-surface-container-highest text-primary rounded-full shadow-sm hover:bg-surface-container-low transition-colors rhythmic-expansion outline outline-1 outline-primary/10">
+<span class="material-symbols-outlined text-xl" data-icon="publish">publish</span>
+</button>
+</div>
+</div>
+<!-- History List -->
+<div class="space-y-3">
+<!-- Entry 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center justify-between shadow-sm border border-outline-variant/30">
+<div class="flex items-center gap-4 flex-1">
+<div class="text-center min-w-[70px]">
+<div class="text-xl font-headline font-bold text-on-surface">118/76</div>
+<div class="text-[10px] font-label font-bold text-secondary bg-secondary-container px-2 py-0.5 rounded-full inline-block uppercase tracking-wider">Healthy</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/30"></div>
+<div class="space-y-0.5 text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span class="font-body text-xs font-medium">Oct 24, 2023</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="font-body text-xs">08:45 AM</span>
+</div>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant/50 hover:text-tertiary hover:bg-tertiary-fixed rounded-full transition-colors rhythmic-expansion">
+<span class="material-symbols-outlined text-xl" data-icon="delete">delete</span>
+</button>
+</div>
+<!-- Entry 2 - High Pressure Style -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center justify-between shadow-sm border border-outline-variant/30">
+<div class="flex items-center gap-4 flex-1">
+<div class="text-center min-w-[70px]">
+<div class="text-xl font-headline font-bold text-on-surface">142/91</div>
+<div class="text-[10px] font-label font-bold text-white bg-tertiary px-2 py-0.5 rounded-full inline-block uppercase tracking-wider">High</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/30"></div>
+<div class="space-y-0.5 text-on-surface-variant">
+<div class="flex items-center gap-1.5 text-tertiary font-medium">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span class="font-body text-xs">Oct 23, 2023</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="font-body text-xs">09:12 PM</span>
+</div>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant/50 hover:text-tertiary hover:bg-tertiary-fixed rounded-full transition-colors rhythmic-expansion">
+<span class="material-symbols-outlined text-xl" data-icon="delete">delete</span>
+</button>
+</div>
+<!-- Entry 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center justify-between shadow-sm border border-outline-variant/30">
+<div class="flex items-center gap-4 flex-1">
+<div class="text-center min-w-[70px]">
+<div class="text-xl font-headline font-bold text-on-surface">121/79</div>
+<div class="text-[10px] font-label font-bold text-secondary bg-secondary-container px-2 py-0.5 rounded-full inline-block uppercase tracking-wider">Healthy</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/30"></div>
+<div class="space-y-0.5 text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span class="font-body text-xs font-medium">Oct 22, 2023</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="font-body text-xs">07:30 AM</span>
+</div>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant/50 hover:text-tertiary hover:bg-tertiary-fixed rounded-full transition-colors rhythmic-expansion">
+<span class="material-symbols-outlined text-xl" data-icon="delete">delete</span>
+</button>
+</div>
+<!-- Entry 4 -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center justify-between shadow-sm border border-outline-variant/30">
+<div class="flex items-center gap-4 flex-1">
+<div class="text-center min-w-[70px]">
+<div class="text-xl font-headline font-bold text-on-surface">115/72</div>
+<div class="text-[10px] font-label font-bold text-secondary bg-secondary-container px-2 py-0.5 rounded-full inline-block uppercase tracking-wider">Healthy</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/30"></div>
+<div class="space-y-0.5 text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span class="font-body text-xs font-medium">Oct 21, 2023</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="font-body text-xs">08:05 AM</span>
+</div>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant/50 hover:text-tertiary hover:bg-tertiary-fixed rounded-full transition-colors rhythmic-expansion">
+<span class="material-symbols-outlined text-xl" data-icon="delete">delete</span>
+</button>
+</div>
+<!-- Entry 5 (Additional to show visibility improvement) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center justify-between shadow-sm border border-outline-variant/30">
+<div class="flex items-center gap-4 flex-1">
+<div class="text-center min-w-[70px]">
+<div class="text-xl font-headline font-bold text-on-surface">120/80</div>
+<div class="text-[10px] font-label font-bold text-secondary bg-secondary-container px-2 py-0.5 rounded-full inline-block uppercase tracking-wider">Healthy</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/30"></div>
+<div class="space-y-0.5 text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span class="font-body text-xs font-medium">Oct 20, 2023</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="font-body text-xs">09:15 AM</span>
+</div>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant/50 hover:text-tertiary hover:bg-tertiary-fixed rounded-full transition-colors rhythmic-expansion">
+<span class="material-symbols-outlined text-xl" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Decorative Footer Accent -->
+<div class="mt-8 mb-4 text-center">
+<p class="text-on-surface-variant/60 text-[11px] font-label uppercase tracking-widest">Viewing past 30 days</p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl z-50 rounded-t-[2.5rem] shadow-[0px_-10px_40px_rgba(25,28,30,0.06)]">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-6 py-3 hover:opacity-80 rhythmic-expansion" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-inter font-semibold text-[10px] uppercase">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-6 py-3 hover:opacity-80 rhythmic-expansion" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="mic">mic</span>
+<span class="font-inter font-semibold text-[10px] uppercase">Record</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-6 py-3 hover:opacity-80 rhythmic-expansion" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="trending_up">trending_up</span>
+<span class="font-inter font-semibold text-[10px] uppercase">Trends</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-100 rounded-[1.5rem] px-6 py-3 rhythmic-expansion" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="history">history</span>
+<span class="font-inter font-semibold text-[10px] uppercase">History</span>
+</a>
+</nav>
+</body></html>

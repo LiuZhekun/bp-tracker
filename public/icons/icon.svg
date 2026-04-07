@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 红色圆角背景 -->
+  <rect width="512" height="512" rx="110" fill="#E53E3E"/>
+
+  <!-- 心形图案（白色）-->
+  <path d="M256 380 C256 380 120 290 120 200
+           C120 155 155 120 200 120
+           C226 120 248 134 256 154
+           C264 134 286 120 312 120
+           C357 120 392 155 392 200
+           C392 290 256 380 256 380Z"
+        fill="white" opacity="0.95"/>
+
+  <!-- 血压数字示意（白色）-->
+  <text x="256" y="340" text-anchor="middle"
+        font-family="-apple-system, sans-serif"
+        font-size="72" font-weight="800" fill="white">
+    BP
+  </text>
+</svg>

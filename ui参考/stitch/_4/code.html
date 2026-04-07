@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Blood Pressure Entry - The Empathetic Guardian</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#88d982",
+                    "on-surface": "#191c1e",
+                    "surface-container-high": "#e6e8eb",
+                    "on-error": "#ffffff",
+                    "surface": "#f7f9fc",
+                    "surface-container-low": "#f2f4f7",
+                    "tertiary-container": "#da3433",
+                    "on-primary-fixed-variant": "#004493",
+                    "on-background": "#191c1e",
+                    "secondary": "#1b6d24",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed": "#410003",
+                    "tertiary-fixed-dim": "#ffb3ac",
+                    "inverse-primary": "#adc6ff",
+                    "inverse-on-surface": "#eff1f4",
+                    "surface-dim": "#d8dadd",
+                    "surface-variant": "#e0e3e6",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#001a41",
+                    "on-primary": "#ffffff",
+                    "primary-fixed-dim": "#adc6ff",
+                    "on-tertiary": "#ffffff",
+                    "tertiary": "#b6171e",
+                    "surface-container": "#eceef1",
+                    "tertiary-fixed": "#ffdad6",
+                    "outline-variant": "#c1c6d7",
+                    "on-surface-variant": "#414755",
+                    "inverse-surface": "#2d3133",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#fffbff",
+                    "secondary-container": "#a0f399",
+                    "surface-tint": "#005bc1",
+                    "outline": "#717786",
+                    "surface-bright": "#f7f9fc",
+                    "on-secondary-fixed-variant": "#005312",
+                    "surface-container-highest": "#e0e3e6",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#a3f69c",
+                    "on-tertiary-fixed-variant": "#930010",
+                    "on-secondary-container": "#217128",
+                    "primary": "#0058bc",
+                    "surface-container-lowest": "#ffffff",
+                    "background": "#f7f9fc",
+                    "on-secondary-fixed": "#002204",
+                    "primary-container": "#0070eb",
+                    "primary-fixed": "#d8e2ff",
+                    "on-primary-container": "#fefcff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Lexend"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed h-screen overflow-hidden flex flex-col">
+<!-- TopAppBar Component -->
+<header class="bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md flex justify-between items-center px-6 py-3 w-full no-line bg-surface-container-low dark:bg-slate-800 z-50">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden">
+<img alt="User profile avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXpVgY4-VLmE_rofWS0wZ4JMteb7iyvdg1GbTNDDcgzgvuFhKdupo_zh9MIdL4ThGeIh57WEcXgNamArxIxAuor_Mh5tEfPYc6SX8w1kw_j9p81Mu66mbE5uwMSp5Sdb9uS0KxiJipPhd2v1wFlF1RYYHE5xjO2hlzyOy4faPSkizXMLFxMwPxxTpFDFqaIPoxes7t8dngpadqnMcFLcqCOU67hQdvsrwg6TUUwKCgejigXD0PZtCVM2OSvy4wJatLwWHM88zZGPQ"/>
+</div>
+<h1 class="font-lexend font-bold text-xl tracking-tight text-blue-700 dark:text-blue-400">The Empathetic Guardian</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors Active:scale-95 duration-200">
+<span class="material-symbols-outlined text-xl" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="flex-grow flex flex-col px-6 pt-2 pb-24 overflow-hidden">
+<!-- Voice Input Section (Reduced size) -->
+<section class="flex flex-col items-center justify-center text-center space-y-4 py-4 shrink-0">
+<div class="relative group">
+<div class="absolute inset-0 bg-primary/20 rounded-full blur-[16px] scale-110 animate-pulse"></div>
+<button class="relative w-20 h-20 bg-gradient-to-br from-primary to-primary-container rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform duration-300">
+<span class="material-symbols-outlined text-white text-3xl" data-icon="mic" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+</div>
+<div class="space-y-1">
+<h2 class="font-headline font-bold text-xl text-on-surface tracking-tight">Listening...</h2>
+<p class="font-body text-sm text-on-surface-variant leading-tight">
+                    "Say your <span class="font-bold text-primary">Systolic</span>, <span class="font-bold text-primary">Diastolic</span>, &amp; <span class="font-bold text-primary">Pulse</span>"
+                </p>
+</div>
+</section>
+<!-- Manual Entry Section (Grouped tightly) -->
+<div class="flex-grow overflow-y-auto space-y-4 pb-4">
+<div class="flex items-center gap-2">
+<div class="h-px bg-outline-variant flex-grow"></div>
+<h3 class="font-label font-semibold text-[10px] uppercase tracking-widest text-outline shrink-0">Or enter manually</h3>
+<div class="h-px bg-outline-variant flex-grow"></div>
+</div>
+<section class="grid grid-cols-2 gap-3">
+<!-- Systolic Card -->
+<div class="bg-surface-container-lowest p-4 rounded-lg shadow-sm flex flex-col gap-1 border border-surface-variant/20">
+<label class="font-label text-xs text-on-surface-variant font-medium" for="systolic">Systolic (Top)</label>
+<div class="flex items-baseline gap-1">
+<input class="w-full text-3xl font-headline font-bold text-on-surface bg-transparent border-none focus:ring-0 p-0 placeholder:text-surface-variant" id="systolic" placeholder="120" type="number"/>
+<span class="text-[10px] text-on-surface-variant font-medium">mmHg</span>
+</div>
+</div>
+<!-- Diastolic Card -->
+<div class="bg-surface-container-lowest p-4 rounded-lg shadow-sm flex flex-col gap-1 border border-surface-variant/20">
+<label class="font-label text-xs text-on-surface-variant font-medium" for="diastolic">Diastolic (Bottom)</label>
+<div class="flex items-baseline gap-1">
+<input class="w-full text-3xl font-headline font-bold text-on-surface bg-transparent border-none focus:ring-0 p-0 placeholder:text-surface-variant" id="diastolic" placeholder="80" type="number"/>
+<span class="text-[10px] text-on-surface-variant font-medium">mmHg</span>
+</div>
+</div>
+<!-- Pulse Card -->
+<div class="bg-surface-container-lowest p-4 rounded-lg shadow-sm flex flex-col gap-1 col-span-2 border border-surface-variant/20">
+<div class="flex justify-between items-center">
+<label class="font-label text-xs text-on-surface-variant font-medium" for="pulse">Pulse Rate</label>
+<span class="text-[10px] text-on-surface-variant font-medium uppercase tracking-tighter">BPM</span>
+</div>
+<input class="w-full text-3xl font-headline font-bold text-on-surface bg-transparent border-none focus:ring-0 p-0 placeholder:text-surface-variant" id="pulse" placeholder="72" type="number"/>
+</div>
+</section>
+<!-- Context Hint (More compact) -->
+<div class="bg-surface-container-low p-3 rounded-lg flex items-center gap-3 text-secondary">
+<span class="material-symbols-outlined text-xl shrink-0" data-icon="info">info</span>
+<p class="font-body text-xs leading-snug">Relax for 5 mins before taking measurements for accuracy.</p>
+</div>
+<!-- Save Button (Prominent and positioned to stay on screen) -->
+<button class="w-full h-14 bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold text-lg rounded-lg shadow-md hover:opacity-90 active:scale-95 transition-all duration-200">
+    Save Reading
+</button>
+</div>
+</main>
+<!-- BottomNavBar Component -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[2.5rem] bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl shadow-[0px_-4px_20px_rgba(0,0,0,0.05)] flex justify-around items-center px-4 pb-6 pt-3">
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-4 py-2 font-inter font-semibold text-xs hover:opacity-80" href="#">
+<span class="material-symbols-outlined text-2xl mb-0.5" data-icon="home">home</span>
+<span>Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-100 rounded-2xl px-5 py-2 font-inter font-semibold text-xs hover:opacity-80 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-2xl mb-0.5" data-icon="mic" style="font-variation-settings: 'FILL' 1;">mic</span>
+<span>Record</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-4 py-2 font-inter font-semibold text-xs hover:opacity-80" href="#">
+<span class="material-symbols-outlined text-2xl mb-0.5" data-icon="trending_up">trending_up</span>
+<span>Trends</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-4 py-2 font-inter font-semibold text-xs hover:opacity-80" href="#">
+<span class="material-symbols-outlined text-2xl mb-0.5" data-icon="history">history</span>
+<span>History</span>
+</a>
+</nav>
+</body></html>
