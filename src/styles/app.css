@@ -38,13 +38,13 @@
   --r-xl: 2rem;
   --shadow-soft: 0 10px 30px rgba(25, 28, 30, 0.04);
   --shadow-float: 0 20px 40px rgba(25, 28, 30, 0.06);
-  --tab-h: 56px;
+  --tab-h: 52px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   /* 固定顶栏总高度（与 .app-top-bar 内边距 + 内容区一致），避免内容被挡或留白过大 */
   --app-top-offset: calc(var(--safe-top) + 64px);
   /* 底栏 + 可选 FAB 占位 */
-  --view-pad-bottom: calc(var(--tab-h) + var(--safe-bottom) + 100px);
+  --view-pad-bottom: calc(var(--tab-h) + var(--safe-bottom) + 26px);
   --content-max: 42rem; /* ≈ max-w-2xl，与 stitch _2 一致 */
   --content-pad-x: 16px; /* px-4 */
 }
@@ -178,7 +178,7 @@ body {
 .fab-record {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--tab-h) + var(--safe-bottom) + 8px);
+  bottom: calc(var(--tab-h) + var(--safe-bottom) + 6px);
   transform: translateX(-50%);
   z-index: 120;
   width: 94px;
@@ -213,7 +213,7 @@ body {
 }
 
 #view-home {
-  padding-bottom: calc(var(--tab-h) + var(--safe-bottom) + 18px);
+  padding-bottom: calc(var(--tab-h) + var(--safe-bottom) + 14px);
 }
 
 /* ===== 首页（对齐 ui参考/stitch/_2 Home）===== */
@@ -1164,7 +1164,7 @@ body {
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 14px var(--content-pad-x) 30px;
+  padding: 14px var(--content-pad-x) 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -1797,7 +1797,7 @@ details.more-fields.card {
 /* ===== 趋势页（参考 ui参考/统计页签）===== */
 .page-main--trend {
   gap: 12px;
-  padding-bottom: 22px;
+  padding-bottom: 16px;
 }
 
 .trend-dashboard {
@@ -2560,7 +2560,7 @@ details.more-fields.card {
   left: 0;
   right: 0;
   min-height: calc(var(--tab-h) + var(--safe-bottom));
-  padding: 12px 8px calc(var(--safe-bottom) + 16px);
+  padding: 8px 8px calc(var(--safe-bottom) + 8px);
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -2614,7 +2614,7 @@ details.more-fields.card {
 /* ===== Toast ===== */
 .toast {
   position: fixed;
-  bottom: calc(var(--tab-h) + var(--safe-bottom) + 20px);
+  bottom: calc(var(--tab-h) + var(--safe-bottom) + 16px);
   left: 50%;
   transform: translateX(-50%);
   background: color-mix(in srgb, var(--on-surface) 88%, transparent);
