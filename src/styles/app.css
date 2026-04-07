@@ -2557,24 +2557,25 @@ details.more-fields.card {
 .tab-bar {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 24px), 420px);
   min-height: calc(var(--tab-h) + var(--safe-bottom));
-  padding: 10px var(--content-pad-x) calc(var(--safe-bottom) + 2px);
+  padding: 8px 10px calc(var(--safe-bottom) + 2px);
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
   background: color-mix(in srgb, var(--surface-lowest) 92%, transparent);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  border-radius: 28px 28px 0 0;
+  border-radius: 24px 24px 0 0;
   box-shadow: 0 -10px 40px rgba(25, 28, 30, 0.06);
   z-index: 100;
 }
 
 .tab-btn {
-  flex: 1;
-  min-width: 0;
+  flex: 0 1 76px;
+  min-width: 64px;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -2585,8 +2586,8 @@ details.more-fields.card {
   gap: 3px;
   font-family: inherit;
   color: var(--on-surface-variant);
-  min-height: 56px;
-  padding: 8px 10px;
+  min-height: 52px;
+  padding: 6px 6px;
   border-radius: 18px;
   transition: background 0.2s, color 0.2s;
 }
