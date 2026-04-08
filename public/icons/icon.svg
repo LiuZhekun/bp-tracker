@@ -1,20 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="血压记录">
-  <!-- ui参考/浏览器标识/DESIGN.md：主色渐变 135° primary → primary_container -->
+  <!-- 经典对称心形 + 柔光；白心电图略穿出心形两侧；背景透明 -->
   <defs>
-    <linearGradient id="bp-brand" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0058bc"/>
-      <stop offset="100%" stop-color="#0070eb"/>
-    </linearGradient>
+    <filter id="heartGlow" x="-45%" y="-45%" width="190%" height="190%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10" result="blur"/>
+      <feFlood flood-color="#9FD4FA" flood-opacity="0.55" result="glowColor"/>
+      <feComposite in="glowColor" in2="blur" operator="in" result="softGlow"/>
+      <feMerge>
+        <feMergeNode in="softGlow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bp-brand)"/>
-  <!-- 白色生命体征波形（on_primary） -->
+  <path
+    filter="url(#heartGlow)"
+    fill="#6BB3E8"
+    d="M256 428
+       C148 360 72 300 72 218
+       C72 142 128 96 196 96
+       C232 96 252 116 256 138
+       C260 116 280 96 316 96
+       C384 96 440 142 440 218
+       C440 300 364 360 256 428Z"
+  />
   <path
     fill="none"
     stroke="#ffffff"
-    stroke-width="34"
+    stroke-width="20"
     stroke-linecap="round"
     stroke-linejoin="round"
-    opacity="0.96"
-    d="M72 256h68l32-112 52 224 52-288 52 224 32-112h68"
+    d="M64 252h68l14 9l12-14l16-98l18 112l16 30l16-38l14 7h212"
   />
 </svg>
