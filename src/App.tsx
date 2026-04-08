@@ -9,6 +9,7 @@ import { AddPage } from './app/pages/AddPage'
 import { ChartPage } from './app/pages/ChartPage'
 import { HistoryPage } from './app/pages/HistoryPage'
 import { Storage } from './lib/storage'
+import { formatYMD } from './utils/bp'
 
 export default function App() {
   const [view, setView] = useState<ViewId>('home')
@@ -31,12 +32,21 @@ export default function App() {
     setView('add')
   }
 
+  const openRecordWithVoice = useCallback(() => {
+    setFabVoiceGen((g) => g + 1)
+    setView('add')
+  }, [])
+
+  void refreshTick
+  const ymd = formatYMD(new Date())
+  const hasTodayMeasurement = Storage.getAll().some((r) => r.time.slice(0, 10) === ymd)
+
   return (
     <>
       <AppHeader onSettings={() => showToast('设置功能即将推出')} />
 
       <div id="view-home" className={'view view--with-global-header' + (view === 'home' ? ' active' : '')}>
-        <HomePage refreshTick={refreshTick} />
+        <HomePage refreshTick={refreshTick} onOpenRecord={openRecordWithVoice} onOpenHistory={() => setView('history')} />
       </div>
 
       <div id="view-add" className={'view view--with-global-header' + (view === 'add' ? ' active' : '')}>
@@ -56,7 +66,7 @@ export default function App() {
         />
       </div>
 
-      <FabRecord visible={view === 'home'} onClick={onFab} />
+      <FabRecord visible={view === 'home' && hasTodayMeasurement} onClick={onFab} />
       <BottomNav current={view} onChange={switchView} />
       <Toast message={toast} />
 

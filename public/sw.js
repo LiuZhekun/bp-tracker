@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 // 简化版 PWA Service Worker（与 travel-planner 一致）
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `bp-tracker-${CACHE_VERSION}`;
 
 const BASE = self.registration.scope;

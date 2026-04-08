@@ -4,8 +4,8 @@
   "description": "记录每次血压数据，支持语音与手动录入，生成趋势图表",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#E53E3E",
+  "background_color": "#f7f9fc",
+  "theme_color": "#0058bc",
   "orientation": "portrait",
   "lang": "zh-CN",
   "icons": [

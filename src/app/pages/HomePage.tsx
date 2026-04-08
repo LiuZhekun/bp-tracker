@@ -1,147 +1,208 @@
 import { bpTag, formatYMD, p } from '../../utils/bp'
+import type { BpRecord } from '../../lib/storage'
 import { Storage } from '../../lib/storage'
 
 type Props = {
   refreshTick: number
+  onOpenRecord: () => void
+  onOpenHistory: () => void
 }
 
-export function HomePage({ refreshTick }: Props) {
+function filterLast24h(records: BpRecord[]) {
+  const since = Date.now() - 24 * 60 * 60 * 1000
+  return records.filter((r) => new Date(r.time).getTime() >= since)
+}
+
+function greeting() {
+  const h = new Date().getHours()
+  if (h < 12) return '早上好'
+  if (h < 18) return '下午好'
+  return '晚上好'
+}
+
+function formatTimeLabel(d: Date, isToday: boolean) {
+  return isToday
+    ? `今天，${p(d.getHours())}:${p(d.getMinutes())}`
+    : `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+/** ui参考/首页记录页/stitch/_1 — 今日已测量 */
+function HomeMeasuredToday({
+  latestToday,
+  st24,
+  todayN,
+}: {
+  latestToday: BpRecord
+  st24: ReturnType<typeof Storage.calcStats>
+  todayN: number
+}) {
+  const tag = bpTag(latestToday.sys, latestToday.dia)
+  return (
+    <div className="home-ref-measured">
+      <section className="home-hero-today" aria-label="今日测量概要">
+        <div className="home-hero-today__watermark" aria-hidden="true">
+          <span className="material-symbols-outlined">check_circle</span>
+        </div>
+        <div className="home-hero-today__badge-row">
+          <span className="material-symbols-outlined home-hero-today__verified" style={{ fontVariationSettings: "'FILL' 1" }}>
+            verified
+          </span>
+          <span className="home-hero-today__label">今日已测量</span>
+        </div>
+        <div className="home-hero-today__bp-block">
+          <div className="home-hero-today__bp">
+            {latestToday.sys}/{latestToday.dia}
+          </div>
+          <span className="home-hero-today__unit">mmHg</span>
+        </div>
+        <div className="home-hero-today__level">{tag.label}</div>
+      </section>
+
+      <div className="home-bento-grid">
+        <div className="home-bento-cell">
+          <div className="home-bento-cell__head">
+            <span className="material-symbols-outlined">analytics</span>
+            <span>平均值</span>
+          </div>
+          <div>
+            <p className="home-bento-cell__main">
+              {st24 ? (
+                <>
+                  {st24.avgSys}/{st24.avgDia}
+                </>
+              ) : (
+                '—'
+              )}
+            </p>
+            <p className="home-bento-cell__sub">近 24 小时</p>
+          </div>
+        </div>
+        <div className="home-bento-cell">
+          <div className="home-bento-cell__head">
+            <span className="material-symbols-outlined">format_list_numbered</span>
+            <span>记录次数</span>
+          </div>
+          <div>
+            <p className="home-bento-cell__main">{todayN}</p>
+            <p className="home-bento-cell__sub">今日记录</p>
+          </div>
+        </div>
+      </div>
+
+      <section className="home-ritual-ref">
+        <div className="home-ritual-ref__icon">
+          <span className="material-symbols-outlined">lightbulb</span>
+        </div>
+        <div className="home-ritual-ref__copy">
+          <h3 className="home-ritual-ref__title">晨间习惯</h3>
+          <p className="home-ritual-ref__text">
+            测量前请安静休息约 5 分钟，手臂与心脏同高、双脚平放，早晨读数更准确。
+          </p>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/** ui参考/首页记录页/stitch/_2 — 今日未测量 */
+function HomeNotMeasuredToday({
+  latest,
+  onOpenRecord,
+  onOpenHistory,
+}: {
+  latest: BpRecord | undefined
+  onOpenRecord: () => void
+  onOpenHistory: () => void
+}) {
+  const ymd = formatYMD(new Date())
+  const lastTag = latest ? bpTag(latest.sys, latest.dia) : null
+  const lastTime =
+    latest &&
+    formatTimeLabel(new Date(latest.time), formatYMD(new Date(latest.time)) === ymd)
+
+  return (
+    <div className="home-ref-notoday">
+      <header className="home-wellness-head">
+        <p className="home-wellness-head__greet">{greeting()}</p>
+        <h2 className="home-wellness-head__title">每日健康打卡</h2>
+      </header>
+
+      <div className="home-ref-notoday__stack">
+        <div className="home-alert-today">
+          <div className="home-alert-today__glow" aria-hidden="true"></div>
+          <span className="material-symbols-outlined home-alert-today__icon">warning</span>
+          <h3 className="home-alert-today__title">今日尚未测量</h3>
+          <p className="home-alert-today__sub">关爱心脏健康，现在就测一次吧。</p>
+          <button type="button" className="home-alert-today__mic" aria-label="语音录入" onClick={onOpenRecord}>
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+              mic
+            </span>
+          </button>
+          <p className="home-alert-today__mic-hint">点击语音录入</p>
+        </div>
+
+        <div className="home-last-reading">
+          <div className="home-last-reading__top">
+            <span className="home-last-reading__label">
+              <span className="material-symbols-outlined">history</span>
+              上次读数
+            </span>
+            {lastTag ? <span className={`home-last-reading__pill ${lastTag.cls}`}>{lastTag.label}</span> : null}
+          </div>
+          {latest ? (
+            <>
+              <div className="home-last-reading__bp-row">
+                <div className="home-last-reading__col">
+                  <span className="home-last-reading__nums">
+                    {latest.sys}/{latest.dia}
+                  </span>
+                  <span className="home-last-reading__meta">mmHg · 血压</span>
+                </div>
+                <div className="home-last-reading__vsep" aria-hidden="true"></div>
+                <div className="home-last-reading__col">
+                  <span className="home-last-reading__nums home-last-reading__nums--pulse">
+                    {latest.pulse ?? '—'}
+                  </span>
+                  <span className="home-last-reading__meta">BPM · 心率</span>
+                </div>
+              </div>
+              <div className="home-last-reading__footer">
+                <span className="home-last-reading__time">{lastTime}</span>
+                <button type="button" className="home-last-reading__link" onClick={onOpenHistory}>
+                  查看详情
+                  <span className="material-symbols-outlined">arrow_forward</span>
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="home-last-reading__empty">暂无记录，请先录入一次血压。</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function HomePage({ refreshTick, onOpenRecord, onOpenHistory }: Props) {
   void refreshTick
   const all = Storage.getAll()
-  const empty = !all.length
+  const ymd = formatYMD(new Date())
+  const todayRecords = all.filter((r) => r.time.slice(0, 10) === ymd)
+  const latestToday = todayRecords[0]
+  const todayN = todayRecords.length
+  const st24 = Storage.calcStats(filterLast24h(all))
 
-  if (empty) {
+  if (latestToday) {
     return (
       <main className="page-main page-main--home">
-        <div id="home-empty" className="home-empty card card--elevated">
-          <span className="material-symbols-outlined home-empty__icon">favorite</span>
-          <p className="home-empty__title">还没有测量记录</p>
-          <p className="home-empty__sub">点击下方按钮开始第一次录入</p>
-        </div>
+        <HomeMeasuredToday latestToday={latestToday} st24={st24} todayN={todayN} />
       </main>
     )
   }
 
-  const latest = all[0]!
-  const week = Storage.getByRange('week7')
-  const st = Storage.calcStats(week)
-  const ymd = formatYMD(new Date())
-  const todayN = all.filter((r) => r.time.slice(0, 10) === ymd).length
-
-  const d = new Date(latest.time)
-  const nowDay = new Date()
-  const isToday = formatYMD(d) === formatYMD(nowDay)
-  const timeLabel = isToday
-    ? `今天，${p(d.getHours())}:${p(d.getMinutes())}`
-    : `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
-
-  const tag = bpTag(latest.sys, latest.dia)
-  const ok = tag.cls === 'tag-normal' || tag.cls === 'tag-low'
-  const icon = ok ? 'check_circle' : tag.cls === 'tag-high' ? 'warning' : 'error'
-
   return (
     <main className="page-main page-main--home">
-      <div id="home-main" className="home-main">
-          <section className="home-section">
-            <h2 className="home-section__label">最近读数</h2>
-            <div className="home-latest">
-              <div className="home-latest__glow" aria-hidden="true"></div>
-              <div className="home-latest__inner">
-                <div className="home-latest__main-col">
-                  <div className="home-latest__bp-row">
-                    <div className="home-latest__col">
-                      <span className="home-latest__label">收缩压（高压）</span>
-                      <div className="home-latest__value-row">
-                        <span id="home-sys" className="home-latest__num">
-                          {latest.sys}
-                        </span>
-                        <span className="home-latest__unit">mmHg</span>
-                      </div>
-                    </div>
-                    <div className="home-latest__vsep" aria-hidden="true"></div>
-                    <div className="home-latest__col">
-                      <span className="home-latest__label">舒张压（低压）</span>
-                      <div className="home-latest__value-row">
-                        <span id="home-dia" className="home-latest__num">
-                          {latest.dia}
-                        </span>
-                        <span className="home-latest__unit">mmHg</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p id="home-latest-time" className="home-latest__time">
-                    {timeLabel}
-                  </p>
-                </div>
-                <div className="home-latest__aside">
-                  <div id="home-status-badge" className={`home-status-badge ${tag.cls}`}>
-                    <span className="material-symbols-outlined home-status-badge__icon">{icon}</span>
-                    <span>{tag.label}</span>
-                  </div>
-                  <div className={'home-pulse-row' + (latest.pulse ? '' : ' hidden')}>
-                    <span className="material-symbols-outlined home-pulse-row__icon">favorite</span>
-                    <span id="home-pulse" className="home-pulse-row__num">
-                      {latest.pulse ?? '—'}
-                    </span>
-                    <span className="home-pulse-row__unit">BPM</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="home-stats-block">
-            <div className="home-stats-row">
-              <div className="home-stat-card home-stat-card--avg">
-                <p className="home-stat-card__title">周期平均</p>
-                <div className="home-stat-card__split">
-                  <div className="home-stat-card__split-left">
-                    <span className="home-stat-card__hint">近 7 天 · 收缩/舒张</span>
-                    <p id="home-avg-bp" className="home-stat-card__main">
-                      {st ? (
-                        <>
-                          {st.avgSys}
-                          <span className="home-stat-slash">/</span>
-                          {st.avgDia}
-                          <span className="home-stat-card__unit-inline"> mmHg</span>
-                        </>
-                      ) : (
-                        '—'
-                      )}
-                    </p>
-                  </div>
-                  <div className={'home-stat-card__split-right' + (st?.avgPulse ? '' : ' hidden')}>
-                    <span className="home-stat-card__hint home-stat-card__hint--right">心率</span>
-                    <p className="home-stat-card__pulse-line">
-                      <span className="material-symbols-outlined home-stat-card__heart">favorite</span>
-                      <span id="home-avg-pulse" className="home-stat-card__pulse-num">
-                        {st?.avgPulse ?? '—'}
-                      </span>
-                      <span className="home-stat-card__pulse-unit">次/分</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="home-stat-card home-stat-card--entries">
-                <p className="home-stat-card__title">今日录入</p>
-                <p id="home-today-count" className="home-stat-card__entries-val">
-                  <span id="home-today-num">{todayN}</span>
-                  <span className="home-stat-card__entries-suffix"> 次</span>
-                </p>
-              </div>
-            </div>
-
-            <div className="home-ritual">
-              <div className="home-ritual__icon-wrap">
-                <span className="material-symbols-outlined">lightbulb</span>
-              </div>
-              <div className="home-ritual__copy">
-                <p className="home-ritual__title">晨间小习惯</p>
-                <p className="home-ritual__text">测量前安静休息约 5 分钟，数值更稳定、更有参考价值。</p>
-              </div>
-            </div>
-          </section>
-        </div>
+      <HomeNotMeasuredToday latest={all[0]} onOpenRecord={onOpenRecord} onOpenHistory={onOpenHistory} />
     </main>
   )
 }

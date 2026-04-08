@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html class="h-screen overflow-hidden" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-container": "#217128",
+                    "on-surface": "#191c1e",
+                    "on-secondary": "#ffffff",
+                    "primary": "#0058bc",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "surface": "#f7f9fc",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb3ac",
+                    "on-tertiary-container": "#fffbff",
+                    "secondary": "#1b6d24",
+                    "on-background": "#191c1e",
+                    "primary-fixed": "#d8e2ff",
+                    "outline": "#717786",
+                    "on-tertiary-fixed": "#410003",
+                    "on-secondary-fixed": "#002204",
+                    "surface-container-highest": "#e0e3e6",
+                    "tertiary": "#b6171e",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#2d3133",
+                    "inverse-on-surface": "#eff1f4",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#005bc1",
+                    "surface-container-low": "#f2f4f7",
+                    "on-primary-fixed-variant": "#004493",
+                    "background": "#f7f9fc",
+                    "inverse-primary": "#adc6ff",
+                    "secondary-fixed-dim": "#88d982",
+                    "on-primary-container": "#fefcff",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#e6e8eb",
+                    "on-surface-variant": "#414755",
+                    "tertiary-container": "#da3433",
+                    "surface-dim": "#d8dadd",
+                    "primary-container": "#0070eb",
+                    "secondary-fixed": "#a3f69c",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed-variant": "#005312",
+                    "primary-fixed-dim": "#adc6ff",
+                    "secondary-container": "#a0f399",
+                    "on-primary-fixed": "#001a41",
+                    "surface-variant": "#e0e3e6",
+                    "on-tertiary-fixed-variant": "#930010",
+                    "surface-container": "#eceef1",
+                    "surface-bright": "#f7f9fc",
+                    "tertiary-fixed": "#ffdad6",
+                    "outline-variant": "#c1c6d7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Lexend"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .voice-glow {
+            box-shadow: 0 0 0 0 rgba(218, 52, 51, 0.4);
+            animation: pulse-glow 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+        }
+        @keyframes pulse-glow {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(218, 52, 51, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(218, 52, 51, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(218, 52, 51, 0); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body h-screen flex flex-col overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-700 text-2xl" data-icon="monitor_heart">monitor_heart</span>
+<h1 class="font-headline font-bold text-lg tracking-tight text-blue-700">VitalEase Pulse</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="Close up portrait of a smiling elderly man with gentle eyes and gray hair in soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0MccJJTUeNgCRj9Z9wb59NC9_4Ef4HxZe76E4e0wnGDoRmciCTocz_lfshICInTF9Z88hXhAVMstWaxQa7kmL7tzYlEtc8oHyqDT_aqEF0_WYkOd16NnU5CAz4Sc3t8tRJXZ7MbsLrRGc-f0YgQJckCJCJYZhg2zLTNuAbWCMe9PZOVvOdsVEpkShBfqLImbbe3rlOgEBMGJNekR9D07dJFvYdgrZwx6uOB5u6G30zuS1nzEhrlJ3uVEjgffJrr9VixMNY2gEeZk"/>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 mt-16 mb-24 px-6 py-4 flex flex-col gap-6 overflow-hidden">
+<!-- Welcome Section -->
+<section class="flex flex-col gap-1">
+<p class="text-on-surface-variant font-medium text-lg ml-1">Good morning, James</p>
+<h2 class="font-headline font-extrabold text-2xl text-on-surface leading-tight">Daily Wellness Check</h2>
+</section>
+<!-- NOT MEASURED STATE: Hero Bento Card -->
+<div class="relative flex-1 min-h-0 flex flex-col gap-4">
+<!-- Alert Card -->
+<div class="bg-tertiary-container rounded-lg p-8 flex flex-col items-center justify-center text-center flex-[2] relative overflow-hidden">
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<div class="absolute top-[-20%] right-[-10%] w-64 h-64 bg-white rounded-full blur-3xl"></div>
+</div>
+<span class="material-symbols-outlined text-on-tertiary-container text-5xl mb-4" data-icon="warning">warning</span>
+<h3 class="font-headline font-bold text-3xl text-on-tertiary-container mb-2">Not Measured Today</h3>
+<p class="text-on-tertiary-container/90 text-lg max-w-[280px]">Keep your heart healthy. Take a reading now.</p>
+<!-- Voice Entry CTA -->
+<button class="mt-8 voice-glow bg-white text-tertiary w-24 h-24 rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined text-5xl" data-icon="mic" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+<p class="mt-4 font-bold text-on-tertiary-container uppercase tracking-widest text-sm">Tap to Speak</p>
+</div>
+<!-- Last Reading Bento Cell -->
+<div class="bg-surface-container-lowest rounded-lg p-6 shadow-sm flex flex-col justify-between border border-outline-variant/10">
+<div class="flex justify-between items-center mb-2">
+<span class="text-on-surface-variant font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="history">history</span>
+                        Last Reading
+                    </span>
+<span class="text-secondary font-bold px-3 py-1 bg-secondary-container rounded-full text-sm">NORMAL</span>
+</div>
+<div class="flex items-baseline gap-4">
+<div class="flex flex-col">
+<span class="font-headline font-extrabold text-5xl text-on-surface">125/82</span>
+<span class="text-on-surface-variant text-sm font-medium">mmHg • Blood Pressure</span>
+</div>
+<div class="h-12 w-px bg-surface-container-high mx-2"></div>
+<div class="flex flex-col">
+<span class="font-headline font-bold text-4xl text-on-surface">75</span>
+<span class="text-on-surface-variant text-sm font-medium">BPM • Heart Rate</span>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-surface-container-high flex justify-between items-center">
+<span class="text-on-surface-variant text-sm">Yesterday, 6:45 PM</span>
+<button class="text-primary font-bold flex items-center gap-1 text-sm">
+                        View Details
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-6 bg-white/90 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-[2rem]">
+<!-- Today (Active) -->
+<a class="flex flex-col items-center justify-center bg-blue-50 text-blue-700 rounded-[1.5rem] px-5 py-2.5 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="today" style="font-variation-settings: 'FILL' 1;">today</span>
+<span class="font-['Lexend'] font-medium text-[12px]">Today</span>
+</a>
+<!-- History -->
+<a class="flex flex-col items-center justify-center text-slate-500 px-5 py-2.5 active:scale-90 transition-all duration-200 hover:bg-slate-50" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Lexend'] font-medium text-[12px]">History</span>
+</a>
+<!-- Trends -->
+<a class="flex flex-col items-center justify-center text-slate-500 px-5 py-2.5 active:scale-90 transition-all duration-200 hover:bg-slate-50" href="#">
+<span class="material-symbols-outlined" data-icon="show_chart">show_chart</span>
+<span class="font-['Lexend'] font-medium text-[12px]">Trends</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-slate-500 px-5 py-2.5 active:scale-90 transition-all duration-200 hover:bg-slate-50" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Lexend'] font-medium text-[12px]">Settings</span>
+</a>
+</nav>
+</body></html>

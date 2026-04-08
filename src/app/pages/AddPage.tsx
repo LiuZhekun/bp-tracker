@@ -6,10 +6,10 @@ import { Storage } from '../../lib/storage'
 type Props = {
   onSaved: () => void
   showToast: (msg: string) => void
-  /** 每次点击首页 FAB 递增，用于触发自动开始语音识别 */
   fabVoiceGen?: number
 }
 
+/** ui参考/首页记录页/stitch/_3 — 录入页布局 */
 export function AddPage({ onSaved, showToast, fabVoiceGen = 0 }: Props) {
   const [sys, setSys] = useState('')
   const [dia, setDia] = useState('')
@@ -128,175 +128,178 @@ export function AddPage({ onSaved, showToast, fabVoiceGen = 0 }: Props) {
   }
 
   return (
-    <main className="page-main page-main--record">
-      <div className="voice-card card card--elevated">
+    <main className="page-main page-main--record page-main--record-ref">
+      <div className="record-ref-stack">
         {voiceSupported ? (
-          <>
-            <div id="voice-idle" className={'voice-idle' + (voiceIdle ? '' : ' hidden')}>
-              <button type="button" id="voice-btn" className="mic-btn" aria-label="语音输入血压" onClick={startVoice}>
-                <span className="mic-btn__glow" aria-hidden="true"></span>
-                <span className="material-symbols-outlined mic-btn__icon">mic</span>
-              </button>
-              <p className="voice-desc">点击说出血压数值</p>
-              <p className="voice-example">
-                试着说：<strong className="voice-kw">高压</strong>、<strong className="voice-kw">低压</strong>与
-                <strong className="voice-kw">心率</strong>
-              </p>
+          <section className="record-ref-voice">
+            {voiceIdle ? (
+              <>
+                <div className="record-ref-voice__head">
+                  <h2 className="record-ref-voice__title">语音录入</h2>
+                  <p className="record-ref-voice__sub">点击麦克风，试着说出血压数值</p>
+                </div>
+                <div className="record-ref-mic-wrap">
+                  <div className="record-ref-pulse record-ref-pulse--outer" aria-hidden="true"></div>
+                  <div className="record-ref-pulse record-ref-pulse--inner" aria-hidden="true"></div>
+                  <button type="button" className="record-ref-mic-btn" aria-label="开始语音识别" onClick={startVoice}>
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      mic
+                    </span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="record-ref-voice__head">
+                  <h2 className="record-ref-voice__title">正在聆听</h2>
+                  <p className="record-ref-voice__sub">请说出您的血压数值</p>
+                </div>
+                <div className="record-ref-mic-wrap">
+                  <div className="record-ref-pulse record-ref-pulse--outer" aria-hidden="true"></div>
+                  <div className="record-ref-pulse record-ref-pulse--inner" aria-hidden="true"></div>
+                  <button type="button" className="record-ref-mic-btn" aria-label="停止" onClick={stopVoice}>
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      mic
+                    </span>
+                  </button>
+                </div>
+                <button type="button" className="record-ref-stop" onClick={stopVoice}>
+                  停止
+                </button>
+              </>
+            )}
+            <div className="record-ref-transcript">
+              {voiceIdle ? (
+                <span className="record-ref-transcript__placeholder">
+                  试着说出「高压120，低压80，心率72」
+                </span>
+              ) : (
+                <span>{interim || '请说出您的血压数值'}</span>
+              )}
             </div>
-
-            <div id="voice-recording" className={'voice-recording' + (voiceIdle ? ' hidden' : '')}>
-              <div className="voice-pulse-ring" aria-hidden="true"></div>
-              <div className="voice-wave">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <p className="recording-label">正在聆听…</p>
-              <p id="voice-interim" className="voice-interim">
-                {interim}
-              </p>
-              <button type="button" id="voice-stop-btn" className="stop-btn" onClick={stopVoice}>
-                停止
-              </button>
-            </div>
-          </>
+          </section>
         ) : null}
-      </div>
 
-      <p className="manual-divider">
-        <span className="manual-divider__line"></span>
-        <span className="manual-divider__text">或手动填写</span>
-        <span className="manual-divider__line"></span>
-      </p>
-
-      <div className="form-grid">
-        <div className="field-card card">
-          <label className="field-card__label" htmlFor="input-sys">
-            收缩压（高压）
-          </label>
-          <div className="field-card__row">
-            <input
-              type="number"
-              id="input-sys"
-              min={60}
-              max={260}
-              placeholder="120"
-              inputMode="numeric"
-              className="field-card__input"
-              value={sys}
-              onChange={(e) => setSys(e.target.value)}
-            />
-            <span className="field-card__unit">mmHg</span>
-          </div>
-        </div>
-        <div className="field-card card">
-          <label className="field-card__label" htmlFor="input-dia">
-            舒张压（低压）
-          </label>
-          <div className="field-card__row">
-            <input
-              type="number"
-              id="input-dia"
-              min={40}
-              max={150}
-              placeholder="80"
-              inputMode="numeric"
-              className="field-card__input"
-              value={dia}
-              onChange={(e) => setDia(e.target.value)}
-            />
-            <span className="field-card__unit">mmHg</span>
-          </div>
-        </div>
-        <div className="field-card card field-card--wide">
-          <div className="field-card__head">
-            <label className="field-card__label" htmlFor="input-pulse">
-              心率
-            </label>
-            <span className="field-card__hint">BPM</span>
-          </div>
-          <input
-            type="number"
-            id="input-pulse"
-            min={30}
-            max={220}
-            placeholder="72"
-            inputMode="numeric"
-            className="field-card__input field-card__input--block"
-            value={pulse}
-            onChange={(e) => setPulse(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <details className="more-fields card card--tonal">
-        <summary className="more-fields__summary">
-          <span className="material-symbols-outlined">tune</span>
-          更多选项（时间、备注）
-        </summary>
-        <div className="more-fields__body">
-          <div
-            className="form-row time-toggle-row"
-            id="time-toggle-row"
-            role="button"
-            tabIndex={0}
-            onClick={toggleTimeInput}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                toggleTimeInput()
-              }
-            }}
-          >
-            <span className="form-label">
-              <span className="material-symbols-outlined form-label__icon">schedule</span>
-              测量时间
-            </span>
-            <span className="form-time-hint">{timeExpanded ? '不填则使用当前时间 ▾' : '不填则使用当前时间 ▸'}</span>
-          </div>
-          <div id="time-input-wrap" className={'time-input-wrap' + (timeExpanded ? '' : ' hidden')}>
-            <div className="form-row form-row--inset">
-              <span className="form-label">选择时间</span>
-              <input
-                type="datetime-local"
-                id="input-time"
-                className="form-input-right"
-                value={inputTime}
-                onChange={(e) => {
-                  timeUserEdited.current = true
-                  setInputTime(e.target.value)
-                }}
-              />
+        <section className="record-ref-panel card card--elevated">
+          <p className="record-ref-panel__eyebrow">手动输入</p>
+          <div className="record-ref-grid3">
+            <div className="record-ref-field">
+              <label className="record-ref-field__label" htmlFor="input-sys">
+                收缩压
+              </label>
+              <div className="record-ref-field__box">
+                <input
+                  type="number"
+                  id="input-sys"
+                  min={60}
+                  max={260}
+                  inputMode="numeric"
+                  className="record-ref-field__input"
+                  value={sys}
+                  onChange={(e) => setSys(e.target.value)}
+                />
+                <span className="record-ref-field__unit">mmHg</span>
+              </div>
+            </div>
+            <div className="record-ref-field">
+              <label className="record-ref-field__label" htmlFor="input-dia">
+                舒张压
+              </label>
+              <div className="record-ref-field__box">
+                <input
+                  type="number"
+                  id="input-dia"
+                  min={40}
+                  max={150}
+                  inputMode="numeric"
+                  className="record-ref-field__input"
+                  value={dia}
+                  onChange={(e) => setDia(e.target.value)}
+                />
+                <span className="record-ref-field__unit">mmHg</span>
+              </div>
+            </div>
+            <div className="record-ref-field">
+              <label className="record-ref-field__label" htmlFor="input-pulse">
+                脉搏
+              </label>
+              <div className="record-ref-field__box">
+                <input
+                  type="number"
+                  id="input-pulse"
+                  min={30}
+                  max={220}
+                  inputMode="numeric"
+                  className="record-ref-field__input"
+                  value={pulse}
+                  onChange={(e) => setPulse(e.target.value)}
+                />
+                <span className="record-ref-field__unit">bpm</span>
+              </div>
             </div>
           </div>
-          <div className="form-row form-row--note">
-            <label className="form-label" htmlFor="input-note">
-              <span className="material-symbols-outlined form-label__icon">edit_note</span>
-              备注
-            </label>
-            <input
-              type="text"
-              id="input-note"
-              className="form-input-right"
-              placeholder="可选"
-              maxLength={30}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </div>
-        </div>
-      </details>
 
-      <div className="tip-banner tip-banner--record">
-        <span className="material-symbols-outlined tip-banner__icon">info</span>
-        <p className="tip-banner__text">测量前请放松静坐约 5 分钟，有助于提高准确度。</p>
+          <details className="record-ref-more">
+            <summary className="record-ref-more__summary">
+              <span className="material-symbols-outlined">tune</span>
+              更多选项（时间、备注）
+            </summary>
+            <div className="record-ref-more__body">
+              <div
+                className="record-ref-row"
+                role="button"
+                tabIndex={0}
+                onClick={toggleTimeInput}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    toggleTimeInput()
+                  }
+                }}
+              >
+                <span className="record-ref-row__label">
+                  <span className="material-symbols-outlined">schedule</span>
+                  测量时间
+                </span>
+                <span className="record-ref-row__hint">{timeExpanded ? '▼' : '▶'}</span>
+              </div>
+              <div className={timeExpanded ? 'record-ref-row-inset' : 'hidden'}>
+                <span className="record-ref-row__label">选择时间</span>
+                <input
+                  type="datetime-local"
+                  className="record-ref-datetime"
+                  value={inputTime}
+                  onChange={(e) => {
+                    timeUserEdited.current = true
+                    setInputTime(e.target.value)
+                  }}
+                />
+              </div>
+              <div className="record-ref-row">
+                <label className="record-ref-row__label" htmlFor="input-note">
+                  <span className="material-symbols-outlined">edit_note</span>
+                  备注
+                </label>
+                <input
+                  type="text"
+                  id="input-note"
+                  className="record-ref-note"
+                  maxLength={30}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              </div>
+            </div>
+          </details>
+
+          <button type="button" id="save-btn" className="record-ref-save" onClick={onSave}>
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+              check_circle
+            </span>
+            保存记录
+          </button>
+        </section>
       </div>
-
-      <button type="button" id="save-btn" className="save-btn save-btn--plain" onClick={onSave}>
-        保存测量
-      </button>
     </main>
   )
 }
