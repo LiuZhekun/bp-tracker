@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
 import { nowLocalISO } from '../../utils/bp'
 import { parseSpeech } from '../../utils/voice'
 import { Storage } from '../../lib/storage'
@@ -6,11 +6,15 @@ import { Storage } from '../../lib/storage'
 type Props = {
   onSaved: () => void
   showToast: (msg: string) => void
-  fabVoiceGen?: number
+}
+
+export type AddPageHandle = {
+  /** 须在同一次用户点击回调里同步调用，否则 Android Chrome 会报 not-allowed */
+  startVoiceFromUserGesture: () => void
 }
 
 /** ui参考/首页记录页/stitch/_3 — 录入页布局 */
-export function AddPage({ onSaved, showToast, fabVoiceGen = 0 }: Props) {
+export const AddPage = forwardRef<AddPageHandle, Props>(function AddPage({ onSaved, showToast }, ref) {
   const [sys, setSys] = useState('')
   const [dia, setDia] = useState('')
   const [pulse, setPulse] = useState('')
@@ -54,6 +58,8 @@ export function AddPage({ onSaved, showToast, fabVoiceGen = 0 }: Props) {
       showToast('⚠️ 请使用支持语音识别的浏览器')
       return
     }
+    // 部分 Android 设备上先触发一次 getUserMedia 有助于与系统麦克风授权对齐（不 await，避免打断用户手势链）
+    void navigator.mediaDevices?.getUserMedia?.({ audio: true }).catch(() => {})
     setVoiceIdle(false)
     setInterim('')
     const recognition = new SR()
@@ -79,25 +85,27 @@ export function AddPage({ onSaved, showToast, fabVoiceGen = 0 }: Props) {
     }
     recognition.onerror = (e: SpeechRecognitionErrorEvent) => {
       stopVoice()
-      const map: Record<string, string> = { 'not-allowed': '请允许麦克风权限', 'no-speech': '未检测到声音' }
-      showToast('⚠️ ' + (map[e.error] || '语音识别失败'))
+      const map: Record<string, string> = {
+        'not-allowed':
+          '无法启动语音识别：请确认已允许麦克风；安卓请用 Chrome，并从首页语音按钮进入后勿长时间停留再说话',
+        'no-speech': '未检测到声音',
+        'service-not-allowed': '语音服务不可用（网络或地区限制可能导致，请改用手动输入）',
+        network: '网络异常，语音识别失败',
+        aborted: '语音识别已中断',
+      }
+      showToast('⚠️ ' + (map[e.error] || `语音识别失败（${e.error}）`))
     }
     recognition.onend = stopVoice
-    recognition.start()
-    recognitionRef.current = recognition
+    try {
+      recognition.start()
+      recognitionRef.current = recognition
+    } catch {
+      stopVoice()
+      showToast('⚠️ 无法启动语音识别，请稍后重试')
+    }
   }, [showToast, stopVoice])
 
-  const lastFabGen = useRef(0)
-  useEffect(() => {
-    if (fabVoiceGen <= 0 || fabVoiceGen === lastFabGen.current) return
-    lastFabGen.current = fabVoiceGen
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) {
-      showToast('当前浏览器不支持语音识别，请手动填写')
-      return
-    }
-    requestAnimationFrame(() => startVoice())
-  }, [fabVoiceGen, showToast, startVoice])
+  useImperativeHandle(ref, () => ({ startVoiceFromUserGesture: startVoice }), [startVoice])
 
   const onSave = () => {
     const s = +sys
@@ -302,4 +310,4 @@ export function AddPage({ onSaved, showToast, fabVoiceGen = 0 }: Props) {
       </div>
     </main>
   )
-}
+})
