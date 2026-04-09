@@ -37,25 +37,25 @@ self.addEventListener('fetch', (event) => {
 
   if (url.origin !== self.location.origin) return;
 
+  // Network First：优先请求网络获取最新资源，失败时回退缓存（保证离线可用）
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(req)
-        .then((res) => {
-          if (!res || !res.ok) return res;
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(req, clone).catch(() => {});
-          });
-          return res;
-        })
-        .catch(() => {
+    fetch(req)
+      .then((res) => {
+        if (!res || !res.ok) return res;
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(req, clone).catch(() => {});
+        });
+        return res;
+      })
+      .catch(() => {
+        return caches.match(req).then((cached) => {
+          if (cached) return cached;
           if (req.mode === 'navigate') {
             return caches.match(`${BASE}index.html`) || caches.match(BASE);
           }
           return undefined;
         });
-    })
+      })
   );
 });

@@ -58,8 +58,14 @@ export const AddPage = forwardRef<AddPageHandle, Props>(function AddPage({ onSav
       showToast('⚠️ 请使用支持语音识别的浏览器')
       return
     }
-    // Android 上必须先 await getUserMedia 确保麦克风权限已授予，否则 SpeechRecognition 会报 not-allowed
+    // Android/鸿蒙：先检查麦克风权限状态，权限被永久拒绝时引导用户去设置页开启
     if (navigator.mediaDevices?.getUserMedia) {
+      // 先通过 Permissions API 检测是否已被永久拒绝
+      const permStatus = await navigator.permissions?.query?.({ name: 'microphone' as PermissionName }).catch(() => null)
+      if (permStatus?.state === 'denied') {
+        showToast('⚠️ 麦克风权限已被禁止，请点击浏览器地址栏左侧锁图标，开启麦克风权限后刷新页面')
+        return
+      }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
         // 立即释放麦克风流，我们只需确认权限已授予
