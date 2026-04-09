@@ -52,14 +52,23 @@ export const AddPage = forwardRef<AddPageHandle, Props>(function AddPage({ onSav
     setVoiceIdle(true)
   }, [])
 
-  const startVoice = useCallback(() => {
+  const startVoice = useCallback(async () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SR) {
       showToast('⚠️ 请使用支持语音识别的浏览器')
       return
     }
-    // 部分 Android 设备上先触发一次 getUserMedia 有助于与系统麦克风授权对齐（不 await，避免打断用户手势链）
-    void navigator.mediaDevices?.getUserMedia?.({ audio: true }).catch(() => {})
+    // Android 上必须先 await getUserMedia 确保麦克风权限已授予，否则 SpeechRecognition 会报 not-allowed
+    if (navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        // 立即释放麦克风流，我们只需确认权限已授予
+        stream.getTracks().forEach((t) => t.stop())
+      } catch {
+        showToast('⚠️ 无法访问麦克风，请在浏览器设置中允许麦克风权限后重试')
+        return
+      }
+    }
     setVoiceIdle(false)
     setInterim('')
     const recognition = new SR()
